@@ -8,9 +8,7 @@
 	import "maplibre-gl/dist/maplibre-gl.css";
 
 	import maplibre from "maplibre-gl";
-	import { onMount, setContext, createEventDispatcher, type Snippet } from "svelte";
-
-	const dispatch = createEventDispatcher();
+	import { onMount, setContext, type Snippet } from "svelte";
 
 	let mapContainer: HTMLDivElement;
 
@@ -35,9 +33,9 @@
 
 		// Add click event listener if onclick is provided
 		if (onclick) {
-			mapState.map.on('click', (e) => {
-				const customEvent = new CustomEvent('click', {
-					detail: { lngLat: e.lngLat }
+			mapState.map.on("click", (e) => {
+				const customEvent = new CustomEvent("click", {
+					detail: { lngLat: e.lngLat },
 				}) as CustomEvent<{ lngLat: maplibre.LngLatLike }>;
 				onclick(customEvent);
 			});
