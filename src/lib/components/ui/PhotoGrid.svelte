@@ -20,9 +20,6 @@
 		class?: string;
 	} = $props();
 
-	function createObjectURL(file: File): string {
-		return URL.createObjectURL(file);
-	}
 
 	function removePhoto(index: number) {
 		if (onRemovePhoto) {
@@ -55,7 +52,7 @@
 		{/if}
 		{#each photos as photo, index (photo.name + photo.size + index)}
 			<PhotoThumbnail
-				src={createObjectURL(photo)}
+				source={photo}
 				alt="Selected photo {index + 1}"
 				onRemove={() => removePhoto(index)}
 				onClick={() => handlePhotoClick(photo, index)}

@@ -1,10 +1,11 @@
 <script lang="ts">
+	import type { LngLatLike } from "maplibre-gl";
+
 	import Dialog from "./ui/Dialog.svelte";
 	import PhotoGrid from "./ui/PhotoGrid.svelte";
 	import PhotoThumbnail from "./ui/PhotoThumbnail.svelte";
 	import Map from "./map/Map.svelte";
 	import Marker from "./map/Marker.svelte";
-	import type { LngLatLike } from "maplibre-gl";
 	import { enhance } from "$app/forms";
 	import ChevronLeftIcon from "@lucide/svelte/icons/chevron-left";
 	import ChevronRightIcon from "@lucide/svelte/icons/chevron-right";
@@ -30,6 +31,7 @@
 	let notes = $state("");
 	let isSubmitting = $state(false);
 	let errorMessage = $state("");
+	let uploadProgress = $state({ current: 0, total: 0, message: "" });
 	let fileInput: HTMLInputElement = $state()!;
 
 	const MAX_PHOTOS = 3;
@@ -40,6 +42,7 @@
 		notes = "";
 		isSubmitting = false;
 		errorMessage = "";
+		uploadProgress = { current: 0, total: 0, message: "" };
 		if (initialLocation) {
 			location = initialLocation;
 		}
@@ -179,7 +182,7 @@
 				<div class="flex flex-wrap gap-2">
 					{#each photos as photo, index}
 						<PhotoThumbnail
-							src={URL.createObjectURL(photo)}
+							source={photo}
 							alt="Photo {index + 1}"
 							onRemove={() => removePhoto(index)}
 							class="h-16 w-16"
@@ -235,7 +238,7 @@
 						<div class="mt-2 flex flex-wrap gap-2">
 							{#each photos as photo, index}
 								<PhotoThumbnail
-									src={URL.createObjectURL(photo)}
+									source={photo}
 									alt="Photo {index + 1}"
 									removable={false}
 									class="h-16 w-16"
@@ -279,6 +282,7 @@
 					use:enhance={({ formData }) => {
 						isSubmitting = true;
 						errorMessage = "";
+						uploadProgress = { current: 0, total: photos.length, message: "Uploading photos..." };
 
 						// Add photos to form data
 						photos.forEach((photo, index) => {
@@ -297,6 +301,7 @@
 
 						return async ({ result, update }) => {
 							isSubmitting = false;
+							uploadProgress = { current: 0, total: 0, message: "" };
 
 							if (result.type === "success") {
 								handleClose();
@@ -311,6 +316,21 @@
 					}}
 				>
 					<!-- Hidden inputs are handled by enhance function -->
+					{#if isSubmitting && uploadProgress.total > 0}
+						<div class="mb-4 space-y-2">
+							<p class="text-sm text-gray-600">{uploadProgress.message}</p>
+							<div class="h-2 w-full rounded-full bg-gray-200">
+								<div
+									class="h-2 rounded-full bg-amber-600 transition-all duration-300"
+									style="width: {(uploadProgress.current / uploadProgress.total) * 100}%"
+								></div>
+							</div>
+							<p class="text-xs text-gray-500">
+								{uploadProgress.current} of {uploadProgress.total} photos uploaded
+							</p>
+						</div>
+					{/if}
+
 					<button
 						type="submit"
 						disabled={isSubmitting}
@@ -318,7 +338,7 @@
 					>
 						{#if isSubmitting}
 							<LoaderIcon class="mr-2 h-4 w-4 animate-spin" />
-							Submitting...
+							{uploadProgress.message || "Submitting..."}
 						{:else}
 							Submit Report
 						{/if}

@@ -1,28 +1,38 @@
 <script lang="ts">
 	import XIcon from "@lucide/svelte/icons/x";
+	import { getDisplayUrl } from "$lib/utils/image-urls";
 
 	let {
 		src,
+		source,
 		alt = "Photo thumbnail",
 		onRemove,
 		onClick,
 		class: className = "",
 		removable = true,
+		variant = "thumbnail",
+		accountHash,
 	}: {
-		src: string;
+		src?: string;
+		source?: File | string;
 		alt?: string;
 		onRemove?: () => void;
 		onClick?: () => void;
 		class?: string;
 		removable?: boolean;
+		variant?: string;
+		accountHash?: string;
 	} = $props();
+
+	// Determine the actual image source URL
+	const imageUrl = $derived(src || (source ? getDisplayUrl(source, variant, accountHash) : ""));
 </script>
 
 <div class="relative inline-block {className}">
 	{#if onClick}
 		<button type="button" onclick={onClick} class="block">
 			<img
-				{src}
+				src={imageUrl}
 				{alt}
 				class="h-20 w-20 cursor-pointer rounded-lg border-2 border-gray-200 object-cover transition-colors hover:border-gray-300"
 				loading="lazy"
@@ -30,7 +40,7 @@
 		</button>
 	{:else}
 		<img
-			{src}
+			src={imageUrl}
 			{alt}
 			class="h-20 w-20 rounded-lg border-2 border-gray-200 object-cover"
 			loading="lazy"
