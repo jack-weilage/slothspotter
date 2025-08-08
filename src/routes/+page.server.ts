@@ -1,22 +1,18 @@
-import {
-	getSlothsForMap,
-	type SlothMapData,
-	createSloth,
-	createSighting,
-	createPhoto,
-	getSlothsNearLocation,
-} from "$lib/server/db";
 import type { PageServerLoad, Actions } from "./$types";
-import { SightingType } from "$lib/server/db/schema";
+import type { SlothMapData } from "$lib/server/db";
+
+import { getSlothsForMap, connect } from "$lib/server/db";
+import * as schema from "$lib/server/db/schema";
 import { SlothStatus } from "$lib";
 import { fail } from "@sveltejs/kit";
 import { randomUUID } from "crypto";
 
-export const load: PageServerLoad = async ({ locals }) => {
+export const load: PageServerLoad = async ({ locals, platform }) => {
+	const db = connect(platform!.env.DB);
 	let sloths: SlothMapData[] = [];
 
 	try {
-		sloths = await getSlothsForMap();
+		sloths = await getSlothsForMap(db);
 	} catch (error) {
 		console.error("Error loading sloths:", error);
 	}
@@ -28,7 +24,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 };
 
 export const actions: Actions = {
-	reportSloth: async ({ request, locals }) => {
+	reportSloth: async ({ request, locals, platform }) => {
 		// Check if user is authenticated
 		if (!locals.user) {
 			return fail(401, { error: "Authentication required" });
@@ -47,15 +43,15 @@ export const actions: Actions = {
 				return fail(400, { error: "Invalid location coordinates" });
 			}
 
-			// Check for nearby sloths (within 25 meters)
-			const nearbySloths = await getSlothsNearLocation(latitude, longitude, 25);
-			if (nearbySloths.length > 0) {
-				return fail(400, {
-					error:
-						"A sloth already exists within 25 meters of this location. Please check existing sloths or move the pin to a different location.",
-					nearbySloths,
-				});
-			}
+			// Check for nearby sloths (within 25 meters) TODO: This should display a new step
+			// const nearbySloths = await getSlothsNearLocation(latitude, longitude, 25);
+			// if (nearbySloths.length > 0) {
+			// 	return fail(400, {
+			// 		error:
+			// 			"A sloth already exists within 25 meters of this location. Please check existing sloths or move the pin to a different location.",
+			// 		nearbySloths,
+			// 	});
+			// }
 
 			// Extract photos (up to 3)
 			const photoFiles: File[] = [];
@@ -81,28 +77,36 @@ export const actions: Actions = {
 			const slothId = randomUUID();
 			const sightingId = randomUUID();
 
+			const db = connect(platform!.env.DB);
+
 			// Create the sloth
-			const newSloth = await createSloth({
-				id: slothId,
-				latitude,
-				longitude,
-				status: SlothStatus.Active,
-				discoveredBy: locals.user.id,
-				discoveredAt: new Date(),
-			});
+			const [newSloth] = await db
+				.insert(schema.sloth)
+				.values({
+					id: slothId,
+					latitude,
+					longitude,
+					status: SlothStatus.Active,
+					discoveredBy: locals.user.id,
+					discoveredAt: new Date(),
+				})
+				.returning();
 
 			if (!newSloth) {
 				return fail(500, { error: "Failed to create sloth" });
 			}
 
 			// Create the discovery sighting
-			const newSighting = await createSighting({
-				id: sightingId,
-				slothId,
-				userId: locals.user.id,
-				sightingType: SightingType.Discovery,
-				notes,
-			});
+			const [newSighting] = await db
+				.insert(schema.sighting)
+				.values({
+					id: sightingId,
+					slothId,
+					userId: locals.user.id,
+					sightingType: schema.SightingType.Discovery,
+					notes,
+				})
+				.returning();
 
 			if (!newSighting) {
 				return fail(500, { error: "Failed to create sighting" });
@@ -122,7 +126,7 @@ export const actions: Actions = {
 				// Placeholder - in real implementation, upload to Cloudflare Images here
 				const cloudflareImageId = `placeholder_${photoId}`;
 
-				await createPhoto({
+				await db.insert(schema.photo).values({
 					id: photoId,
 					sightingId,
 					cloudflareImageId,

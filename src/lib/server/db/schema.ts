@@ -1,5 +1,3 @@
-import { SlothStatus } from "$lib";
-import type { AnySQLiteColumn } from "drizzle-orm/sqlite-core";
 import { sqliteTable, integer, text, real, primaryKey } from "drizzle-orm/sqlite-core";
 
 /**
@@ -41,6 +39,14 @@ export const session = sqliteTable("session", {
 });
 
 export type Session = typeof session.$inferSelect;
+
+/**
+ * Status of a sloth in the wild
+ */
+export enum SlothStatus {
+	Active = "active",
+	Removed = "removed",
+}
 
 /**
  * Core sloth entity - represents each unique physical stuffed sloth in Bellingham

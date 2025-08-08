@@ -1,7 +1,7 @@
 import type { RequestHandler } from "./$types";
 
 import { generateSessionToken, createSession, setSessionTokenCookie } from "$lib/server/auth";
-import { createUser, getUserByProviderAndId } from "$lib/server/db";
+import { connect, createUser, getUserByProviderAndId } from "$lib/server/db";
 import { AuthProvider } from "$lib/server/db/schema";
 import { google } from "$lib/server/auth/oauth";
 
@@ -15,6 +15,7 @@ export const GET: RequestHandler = async function (event) {
 	const state = event.url.searchParams.get("state");
 	const storedState = event.cookies.get("google_oauth_state") ?? null;
 	const codeVerifier = event.cookies.get("google_code_verifier") ?? null;
+
 	if (code === null || state === null || storedState === null || codeVerifier === null) {
 		error(400);
 	}
@@ -35,18 +36,19 @@ export const GET: RequestHandler = async function (event) {
 	const displayName = claims.name;
 	const avatarUrl = claims.picture;
 
-	const existingUser = await getUserByProviderAndId(AuthProvider.Google, googleUserId);
+	const db = connect(event.platform!.env.DB);
+
+	const existingUser = await getUserByProviderAndId(db, AuthProvider.Google, googleUserId);
 
 	if (existingUser) {
 		const sessionToken = generateSessionToken();
-		const session = await createSession(sessionToken, existingUser.id);
+		const session = await createSession(db, sessionToken, existingUser.id);
 		setSessionTokenCookie(event, sessionToken, session.expiresAt);
 
 		redirect(302, "/");
 	}
 
-	// TODO: Replace this with your own DB query.
-	const user = await createUser({
+	const user = await createUser(db, {
 		id: randomUUID(),
 		displayName,
 		provider: AuthProvider.Google,
@@ -59,7 +61,7 @@ export const GET: RequestHandler = async function (event) {
 	}
 
 	const sessionToken = generateSessionToken();
-	const session = await createSession(sessionToken, user.id);
+	const session = await createSession(db, sessionToken, user.id);
 	setSessionTokenCookie(event, sessionToken, session.expiresAt);
 
 	redirect(302, "/");
