@@ -1,20 +1,52 @@
+<script lang="ts" module>
+	export interface MapState {
+		map: maplibre.Map;
+	}
+</script>
+
 <script lang="ts">
 	import "maplibre-gl/dist/maplibre-gl.css";
 
 	import maplibre from "maplibre-gl";
-	import { onMount, setContext } from "svelte";
+	import { onMount, setContext, createEventDispatcher, type Snippet } from "svelte";
+
+	const dispatch = createEventDispatcher();
 
 	let mapContainer: HTMLDivElement;
-	let map: maplibre.Map | undefined = $state();
 
-	let { options }: { options: Omit<maplibre.MapOptions, "container"> } = $props();
+	let mapState: MapState = $state({ map: undefined! });
+	setContext(maplibre.Map, mapState);
+
+	let {
+		options,
+		onclick,
+		children,
+	}: {
+		options: Omit<maplibre.MapOptions, "container">;
+		onclick?: (event: CustomEvent<{ lngLat: maplibre.LngLatLike }>) => void;
+		children?: Snippet;
+	} = $props();
 
 	onMount(() => {
-		map = new maplibre.Map({
+		mapState.map = new maplibre.Map({
 			...options,
 			container: mapContainer,
 		});
+
+		// Add click event listener if onclick is provided
+		if (onclick) {
+			mapState.map.on('click', (e) => {
+				const customEvent = new CustomEvent('click', {
+					detail: { lngLat: e.lngLat }
+				}) as CustomEvent<{ lngLat: maplibre.LngLatLike }>;
+				onclick(customEvent);
+			});
+		}
 	});
 </script>
 
-<div bind:this={mapContainer} class="h-full w-full"></div>
+<div bind:this={mapContainer} class="h-full w-full">
+	{#if mapState.map}
+		{@render children?.()}
+	{/if}
+</div>
