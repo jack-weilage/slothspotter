@@ -292,7 +292,7 @@
 
 						// Add photos to form data
 						photos.forEach((photo, index) => {
-							formData.append(`photo_${index}`, photo);
+							formData.append(`photos`, photo, index.toString());
 						});
 
 						// Add location

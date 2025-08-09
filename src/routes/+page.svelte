@@ -42,11 +42,6 @@
 		reportLocation = undefined;
 		showReportDialog = true;
 	}
-
-	function handleReportSuccess() {
-		// Refresh the page to show the new sloth
-		window.location.reload();
-	}
 </script>
 
 <div class="relative h-[calc(100vh-4rem)]">
@@ -129,10 +124,6 @@
 </div>
 
 <!-- Dialogs -->
-<ReportSlothDialog
-	bind:open={showReportDialog}
-	initialLocation={reportLocation}
-	onSubmitSuccess={handleReportSuccess}
-/>
+<ReportSlothDialog bind:open={showReportDialog} initialLocation={reportLocation} />
 
 <LoginDialog bind:open={showLoginDialog} />
