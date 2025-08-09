@@ -37,13 +37,14 @@ export const GET: RequestHandler = async function (event) {
 	const avatarUrl = claims.picture;
 
 	const db = connect(event.platform!.env.DB);
+	const kv = event.platform!.env.USER_SESSIONS;
 
 	const existingUser = await getUserByProviderAndId(db, AuthProvider.Google, googleUserId);
 
 	if (existingUser) {
 		const sessionToken = generateSessionToken();
-		const session = await createSession(db, sessionToken, existingUser.id);
-		setSessionTokenCookie(event, sessionToken, session.expiresAt);
+		const session = await createSession(kv, sessionToken, existingUser.id);
+		setSessionTokenCookie(event, sessionToken, session);
 
 		redirect(302, "/");
 	}
@@ -61,8 +62,8 @@ export const GET: RequestHandler = async function (event) {
 	}
 
 	const sessionToken = generateSessionToken();
-	const session = await createSession(db, sessionToken, user.id);
-	setSessionTokenCookie(event, sessionToken, session.expiresAt);
+	const session = await createSession(kv, sessionToken, user.id);
+	setSessionTokenCookie(event, sessionToken, session);
 
 	redirect(302, "/");
 };

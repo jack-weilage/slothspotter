@@ -25,4 +25,10 @@
 			"migrations_dir": "drizzle",
 		},
 	],
+	"kv_namespaces": [
+		{
+			"binding": "USER_SESSIONS",
+			"id": "ff90adefb76b43178f8293f15a4eab64",
+		},
+	],
 }

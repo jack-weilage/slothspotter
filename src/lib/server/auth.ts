@@ -6,7 +6,17 @@ import { sha256 } from "@oslojs/crypto/sha2";
 import { encodeBase64url, encodeHexLowerCase } from "@oslojs/encoding";
 import * as schema from "$lib/server/db/schema";
 
+interface StoredSession {
+	userId: string;
+	createdAt: Date;
+}
+interface SessionData extends StoredSession {
+	id: string;
+}
+
 const DAY_IN_MS = 1000 * 60 * 60 * 24;
+export const EXPIRATION_TTL_SECONDS = (DAY_IN_MS * 30) / 1000; // 30 days in seconds
+const RENEW_THRESHOLD_MS = DAY_IN_MS * 15; // 15 days in milliseconds
 
 export const sessionCookieName = "auth-session";
 
@@ -16,65 +26,91 @@ export function generateSessionToken() {
 	return token;
 }
 
-export async function createSession(db: Database, token: string, userId: string) {
+export async function createSession(
+	kv: KVNamespace,
+	token: string,
+	userId: string,
+): Promise<SessionData> {
 	const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
-	const session: schema.Session = {
-		id: sessionId,
+	const session: StoredSession = {
 		userId,
-		expiresAt: new Date(Date.now() + DAY_IN_MS * 30),
+		createdAt: new Date(),
 	};
-	await db.insert(schema.session).values(session);
+
+	await kv.put(`session:${sessionId}`, JSON.stringify(session), {
+		expirationTtl: EXPIRATION_TTL_SECONDS,
+	});
+
+	return {
+		...session,
+		id: sessionId,
+	};
+}
+
+export async function renewSession(
+	kv: KVNamespace,
+	userId: string,
+	sessionId: string,
+): Promise<StoredSession> {
+	const session: StoredSession = {
+		userId,
+		createdAt: new Date(),
+	};
+
+	await kv.put(`session:${sessionId}`, JSON.stringify(session), {
+		expirationTtl: EXPIRATION_TTL_SECONDS,
+	});
+
 	return session;
 }
 
-export async function validateSessionToken(db: Database, token: string) {
+export async function retrieveSession(
+	kv: KVNamespace,
+	sessionId: string,
+): Promise<SessionData | null> {
+	const sessionDataStr = await kv.get(`session:${sessionId}`);
+	if (!sessionDataStr) {
+		return null;
+	}
+
+	const session: StoredSession = JSON.parse(sessionDataStr);
+	session.createdAt = new Date(session.createdAt);
+
+	return {
+		...session,
+		id: sessionId,
+	};
+}
+
+export async function validateSessionToken(kv: KVNamespace, db: Database, token: string) {
 	const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
-	const [result] = await db
-		.select({
-			// Adjust user table here to tweak returned data
-			user: {
-				id: schema.user.id,
-				displayName: schema.user.displayName,
-				avatarUrl: schema.user.avatarUrl,
-			},
-			session: schema.session,
-		})
-		.from(schema.session)
-		.innerJoin(schema.user, eq(schema.session.userId, schema.user.id))
-		.where(eq(schema.session.id, sessionId));
+	const session = await retrieveSession(kv, sessionId);
 
-	if (!result) {
-		return { session: null, user: null };
-	}
-	const { session, user } = result;
-
-	const sessionExpired = Date.now() >= session.expiresAt.getTime();
-	if (sessionExpired) {
-		await db.delete(schema.session).where(eq(schema.session.id, session.id));
+	if (!session) {
 		return { session: null, user: null };
 	}
 
-	const renewSession = Date.now() >= session.expiresAt.getTime() - DAY_IN_MS * 15;
-	if (renewSession) {
-		session.expiresAt = new Date(Date.now() + DAY_IN_MS * 30);
-		await db
-			.update(schema.session)
-			.set({ expiresAt: session.expiresAt })
-			.where(eq(schema.session.id, session.id));
+	const shouldRenewSession = Date.now() >= +session.createdAt + RENEW_THRESHOLD_MS;
+	if (shouldRenewSession) {
+		await renewSession(kv, session.userId, sessionId);
 	}
+
+	const user = await db.query.user.findFirst({
+		where: eq(schema.user.id, session.userId),
+	});
 
 	return { session, user };
 }
 
 export type SessionValidationResult = Awaited<ReturnType<typeof validateSessionToken>>;
 
-export async function invalidateSession(db: Database, sessionId: string) {
-	await db.delete(schema.session).where(eq(schema.session.id, sessionId));
+export async function invalidateSession(kv: KVNamespace, sessionId: string) {
+	await kv.delete(`session:${sessionId}`);
 }
 
-export function setSessionTokenCookie(event: RequestEvent, token: string, expiresAt: Date) {
+export function setSessionTokenCookie(event: RequestEvent, token: string, session: StoredSession) {
 	event.cookies.set(sessionCookieName, token, {
-		expires: expiresAt,
+		expires: new Date(+session.createdAt + EXPIRATION_TTL_SECONDS * 1000),
 		path: "/",
 	});
 }

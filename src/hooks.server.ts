@@ -1,24 +1,31 @@
 import type { Handle } from "@sveltejs/kit";
-import * as auth from "$lib/server/auth";
+import {
+	deleteSessionTokenCookie,
+	sessionCookieName,
+	setSessionTokenCookie,
+	validateSessionToken,
+} from "$lib/server/auth";
 import { connect } from "$lib/server/db";
 
 const handleAuth: Handle = async ({ event, resolve }) => {
-	const sessionToken = event.cookies.get(auth.sessionCookieName);
+	const sessionToken = event.cookies.get(sessionCookieName);
 
 	if (!sessionToken) {
 		event.locals.user = null;
 		event.locals.session = null;
+
 		return resolve(event);
 	}
 
 	const db = connect(event.platform!.env.DB);
+	const kv = event.platform!.env.USER_SESSIONS;
 
-	const { session, user } = await auth.validateSessionToken(db, sessionToken);
+	const { session, user } = await validateSessionToken(kv, db, sessionToken);
 
 	if (session) {
-		auth.setSessionTokenCookie(event, sessionToken, session.expiresAt);
+		setSessionTokenCookie(event, sessionToken, session);
 	} else {
-		auth.deleteSessionTokenCookie(event);
+		deleteSessionTokenCookie(event);
 	}
 
 	event.locals.user = user;
