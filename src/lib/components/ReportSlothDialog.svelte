@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { LngLatLike } from "maplibre-gl";
 
+	import maplibre from "maplibre-gl";
 	import Dialog from "./ui/Dialog.svelte";
 	import PhotoGrid from "./ui/PhotoGrid.svelte";
 	import PhotoThumbnail from "./ui/PhotoThumbnail.svelte";
@@ -12,6 +13,7 @@
 	import CheckIcon from "@lucide/svelte/icons/check";
 	import LoaderIcon from "@lucide/svelte/icons/loader-2";
 	import AlertCircleIcon from "@lucide/svelte/icons/alert-circle";
+	import Control from "./map/Control.svelte";
 
 	let {
 		open = $bindable(false),
@@ -202,6 +204,10 @@
 							}}
 							onclick={handleMapClick}
 						>
+							<Control
+								position="top-right"
+								control={new maplibre.GeolocateControl({ trackUserLocation: true })}
+							/>
 							<Marker
 								lngLat={location}
 								options={{ color: "#D97706", draggable: true }}

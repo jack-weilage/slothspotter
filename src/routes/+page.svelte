@@ -59,7 +59,10 @@
 		}}
 	>
 		<Control position="top-right" control={new maplibre.NavigationControl()} />
-		<Control position="top-right" control={new maplibre.GeolocateControl({})} />
+		<Control
+			position="top-right"
+			control={new maplibre.GeolocateControl({ trackUserLocation: true })}
+		/>
 
 		{#each data.sloths as sloth (sloth.id)}
 			<Marker lngLat={[sloth.longitude, sloth.latitude]} options={getMarkerOptions(sloth)}>
