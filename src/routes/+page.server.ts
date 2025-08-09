@@ -7,7 +7,7 @@ import { eq } from "drizzle-orm";
 import { SlothStatus } from "$lib";
 import { fail } from "@sveltejs/kit";
 import { randomUUID } from "crypto";
-import { uploadImage } from "$lib/server/cloudflare-images";
+import { deleteImage, uploadImage } from "$lib/server/cloudflare-images";
 
 export const load: PageServerLoad = async ({ locals, platform }) => {
 	const db = connect(platform!.env.DB);
@@ -118,53 +118,29 @@ export const actions: Actions = {
 			const uploadedPhotos: string[] = [];
 
 			try {
-				for (let i = 0; i < photoFiles.length; i++) {
-					const photo = photoFiles[i];
+				for (const photo of photoFiles) {
 					const photoId = randomUUID();
-
-					console.log(
-						`Uploading photo ${i + 1} of ${photoFiles.length}: ${photo.name} (${photo.size} bytes)`,
-					);
 
 					// Upload to Cloudflare Images
 					const cloudflareImageId = await uploadImage(photo, photoId, locals.user.id);
 					uploadedPhotos.push(cloudflareImageId);
 
-					console.log(`Successfully uploaded photo ${i + 1}, Cloudflare ID: ${cloudflareImageId}`);
-				}
-
-				// Create photo records in database
-				for (let i = 0; i < uploadedPhotos.length; i++) {
-					const photoId = randomUUID();
-					const cloudflareImageId = uploadedPhotos[i];
-
 					await db.insert(schema.photo).values({
 						id: photoId,
 						sightingId,
 						cloudflareImageId,
-						caption: `Photo ${i + 1}`,
 					});
 				}
 			} catch (uploadError) {
-				console.error("Photo upload failed:", uploadError);
-
 				// Clean up any successfully uploaded images
-				for (const imageId of uploadedPhotos) {
-					try {
-						// Note: We could implement deleteImage here, but for now just log
-						console.log(`Should clean up uploaded image: ${imageId}`);
-					} catch (cleanupError) {
-						console.error("Failed to clean up uploaded image:", cleanupError);
-					}
+				for (const photoId of uploadedPhotos) {
+					await deleteImage(photoId);
+					await db.delete(schema.photo).where(eq(schema.photo.cloudflareImageId, photoId));
 				}
 
 				// Clean up database records (sloth and sighting)
-				try {
-					await db.delete(schema.sighting).where(eq(schema.sighting.id, sightingId));
-					await db.delete(schema.sloth).where(eq(schema.sloth.id, slothId));
-				} catch (cleanupError) {
-					console.error("Failed to clean up database records:", cleanupError);
-				}
+				await db.delete(schema.sighting).where(eq(schema.sighting.id, sightingId));
+				await db.delete(schema.sloth).where(eq(schema.sloth.id, slothId));
 
 				return fail(500, {
 					error:

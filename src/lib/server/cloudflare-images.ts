@@ -73,7 +73,6 @@ export async function uploadImage(
 
 		return result.result.id;
 	} catch (error) {
-		console.error("Error uploading image to Cloudflare:", error);
 		throw new Error(
 			error instanceof Error ? error.message : "Failed to upload image to Cloudflare Images",
 		);
@@ -142,7 +141,6 @@ export async function deleteImage(imageId: string): Promise<void> {
 			throw new Error(`Image deletion failed: ${errorMessage}`);
 		}
 	} catch (error) {
-		console.error("Error deleting image from Cloudflare:", error);
 		throw new Error(
 			error instanceof Error ? error.message : "Failed to delete image from Cloudflare Images",
 		);
@@ -163,7 +161,6 @@ export async function uploadMultipleImages(
 			onProgress?.(index + 1, files.length);
 			return imageId;
 		} catch (error) {
-			console.error(`Error uploading file ${index + 1}:`, error);
 			throw error;
 		}
 	});
@@ -199,4 +196,3 @@ export function getDisplayUrl(
 	// Fallback for invalid/placeholder IDs
 	return "";
 }
-
