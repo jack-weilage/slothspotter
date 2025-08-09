@@ -1,9 +1,176 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "2ca52542-d7e5-4b86-ba50-9ae25c7b1f7f",
+  "id": "0fe689fe-c939-43da-8fa5-e626f1eb0ed1",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
+    "moderation_flag": {
+      "name": "moderation_flag",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "content_type": {
+          "name": "content_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "content_id": {
+          "name": "content_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "flagged_by_user_id": {
+          "name": "flagged_by_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "reason": {
+          "name": "reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "resolved": {
+          "name": "resolved",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
+        "resolved_by": {
+          "name": "resolved_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "resolved_at": {
+          "name": "resolved_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "moderation_flag_flagged_by_user_id_user_id_fk": {
+          "name": "moderation_flag_flagged_by_user_id_user_id_fk",
+          "tableFrom": "moderation_flag",
+          "tableTo": "user",
+          "columnsFrom": [
+            "flagged_by_user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "moderation_flag_resolved_by_user_id_fk": {
+          "name": "moderation_flag_resolved_by_user_id_fk",
+          "tableFrom": "moderation_flag",
+          "tableTo": "user",
+          "columnsFrom": [
+            "resolved_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "photo": {
+      "name": "photo",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "sighting_id": {
+          "name": "sighting_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "cloudflare_image_id": {
+          "name": "cloudflare_image_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "caption": {
+          "name": "caption",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "photo_sighting_id_sighting_id_fk": {
+          "name": "photo_sighting_id_sighting_id_fk",
+          "tableFrom": "photo",
+          "tableTo": "sighting",
+          "columnsFrom": [
+            "sighting_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
     "session": {
       "name": "session",
       "columns": {
@@ -59,17 +226,82 @@
           "notNull": true,
           "autoincrement": false
         },
-        "reporter_id": {
-          "name": "reporter_id",
+        "sloth_id": {
+          "name": "sloth_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "description": {
-          "name": "description",
+        "user_id": {
+          "name": "user_id",
           "type": "text",
           "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "sighting_type": {
+          "name": "sighting_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "sighting_sloth_id_sloth_id_fk": {
+          "name": "sighting_sloth_id_sloth_id_fk",
+          "tableFrom": "sighting",
+          "tableTo": "sloth",
+          "columnsFrom": [
+            "sloth_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "sighting_user_id_user_id_fk": {
+          "name": "sighting_user_id_user_id_fk",
+          "tableFrom": "sighting",
+          "tableTo": "user",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "sloth": {
+      "name": "sloth",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
           "notNull": true,
           "autoincrement": false
         },
@@ -87,18 +319,26 @@
           "notNull": true,
           "autoincrement": false
         },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'active'"
+        },
+        "discovered_by": {
+          "name": "discovered_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
         "discovered_at": {
           "name": "discovered_at",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false
-        },
-        "original_sighting_id": {
-          "name": "original_sighting_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
           "autoincrement": false
         },
         "created_at": {
@@ -118,25 +358,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "sighting_reporter_id_user_id_fk": {
-          "name": "sighting_reporter_id_user_id_fk",
-          "tableFrom": "sighting",
+        "sloth_discovered_by_user_id_fk": {
+          "name": "sloth_discovered_by_user_id_fk",
+          "tableFrom": "sloth",
           "tableTo": "user",
           "columnsFrom": [
-            "reporter_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "sighting_original_sighting_id_sighting_id_fk": {
-          "name": "sighting_original_sighting_id_sighting_id_fk",
-          "tableFrom": "sighting",
-          "tableTo": "sighting",
-          "columnsFrom": [
-            "original_sighting_id"
+            "discovered_by"
           ],
           "columnsTo": [
             "id"
@@ -149,40 +376,25 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
-    "sighting_image": {
-      "name": "sighting_image",
+    "spot": {
+      "name": "spot",
       "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "sighting_id": {
-          "name": "sighting_id",
+        "sloth_id": {
+          "name": "sloth_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "photo_id": {
-          "name": "photo_id",
+        "user_id": {
+          "name": "user_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "is_primary": {
-          "name": "is_primary",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": false
-        },
-        "created_at": {
-          "name": "created_at",
+        "spotted_at": {
+          "name": "spotted_at",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
@@ -191,12 +403,25 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "sighting_image_sighting_id_sighting_id_fk": {
-          "name": "sighting_image_sighting_id_sighting_id_fk",
-          "tableFrom": "sighting_image",
-          "tableTo": "sighting",
+        "spot_sloth_id_sloth_id_fk": {
+          "name": "spot_sloth_id_sloth_id_fk",
+          "tableFrom": "spot",
+          "tableTo": "sloth",
           "columnsFrom": [
-            "sighting_id"
+            "sloth_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "spot_user_id_user_id_fk": {
+          "name": "spot_user_id_user_id_fk",
+          "tableFrom": "spot",
+          "tableTo": "user",
+          "columnsFrom": [
+            "user_id"
           ],
           "columnsTo": [
             "id"
@@ -205,7 +430,15 @@
           "onUpdate": "no action"
         }
       },
-      "compositePrimaryKeys": {},
+      "compositePrimaryKeys": {
+        "spot_sloth_id_user_id_pk": {
+          "columns": [
+            "sloth_id",
+            "user_id"
+          ],
+          "name": "spot_sloth_id_user_id_pk"
+        }
+      },
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
