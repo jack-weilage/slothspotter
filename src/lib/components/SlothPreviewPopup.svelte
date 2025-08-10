@@ -28,7 +28,7 @@
 				src={getImageUrl(sloth.primaryPhoto.url)}
 				alt="Sloth #{sloth.id.slice(-6)}"
 				class="h-full w-full object-cover"
-				style="--lqip: {sloth.primaryPhoto.lqip};"
+				style={sloth.primaryPhoto.lqip !== undefined ? `--lqip: ${sloth.primaryPhoto.lqip};` : ""}
 				loading="lazy"
 			/>
 		</div>

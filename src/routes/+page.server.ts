@@ -9,7 +9,6 @@ import { fail } from "@sveltejs/kit";
 import { randomUUID } from "crypto";
 import { deleteImage, uploadImage } from "$lib/server/cloudflare-images";
 import { type } from "arktype";
-import { generateLQIP } from "lquip";
 
 export const load: PageServerLoad = async ({ locals, platform }) => {
 	const db = connect(platform!.env.DB);
@@ -125,18 +124,14 @@ export const actions: Actions = {
 			for (const photo of photos) {
 				const photoId = randomUUID();
 
-				const buffer = await photo.arrayBuffer();
-
 				// Upload to Cloudflare Images
 				const cloudflareImageId = await uploadImage(photo, photoId, locals.user.id);
 				uploadedPhotos.push(cloudflareImageId);
 
-				const lqip = await generateLQIP(buffer);
 				await db.insert(schema.photo).values({
 					id: photoId,
 					sightingId,
 					cloudflareImageId,
-					lqip,
 				});
 			}
 		} catch (uploadError) {

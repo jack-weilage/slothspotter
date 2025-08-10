@@ -4,7 +4,7 @@
  */
 
 import { CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_IMAGES_TOKEN } from "$env/static/private";
-import { generateLQIP } from "lquip";
+import { getImageUrl } from "$lib/utils/image-urls";
 
 export interface CloudflareImageUploadResponse {
 	result: {
@@ -144,11 +144,7 @@ export function isValidImageId(imageId: string): boolean {
 /**
  * Get the appropriate image URL, handling both File objects and Cloudflare image IDs
  */
-export function getDisplayUrl(
-	source: File | string,
-	variant: string = "thumbnail",
-	accountHash?: string,
-): string {
+export function getDisplayUrl(source: File | string, variant: string = "thumbnail"): string {
 	if (source instanceof File) {
 		// For File objects, create a temporary object URL
 		return URL.createObjectURL(source);
@@ -156,7 +152,7 @@ export function getDisplayUrl(
 
 	// For Cloudflare image IDs
 	if (isValidImageId(source)) {
-		return getImageUrl(source, variant, accountHash);
+		return getImageUrl(source, variant);
 	}
 
 	// Fallback for invalid/placeholder IDs

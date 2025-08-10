@@ -99,7 +99,7 @@ export const photo = sqliteTable("photo", {
 	sightingId: text("sighting_id")
 		.notNull()
 		.references(() => sighting.id),
-	lqip: integer("lqip").notNull().default(0), // Low-quality image placeholder
+	lqip: integer("lqip"), // Optional low-quality image placeholder
 	cloudflareImageId: text("cloudflare_image_id").notNull(), // Cloudflare Images ID
 	caption: text("caption"),
 	createdAt: integer("created_at", { mode: "timestamp" })
