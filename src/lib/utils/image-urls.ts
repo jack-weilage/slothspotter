@@ -3,18 +3,13 @@
  * Handles both File objects and Cloudflare image IDs
  */
 
+import { PUBLIC_CLOUDFLARE_ACCOUNT_HASH } from "$env/static/public";
+
 /**
  * Generate a Cloudflare Images delivery URL
  */
-export function getImageUrl(
-	imageId: string,
-	variant: string = "public",
-	accountHash?: string
-): string {
-	// Use provided account hash or fallback - this should be configurable via env
-	const hash = accountHash || "default-hash-placeholder";
-	
-	return `https://imagedelivery.net/${hash}/${imageId}/${variant}`;
+export function getImageUrl(imageId: string, variant: string = "public"): string {
+	return `https://imagedelivery.net/${PUBLIC_CLOUDFLARE_ACCOUNT_HASH}/${imageId}/${variant}`;
 }
 
 /**
@@ -27,11 +22,7 @@ export function isValidImageId(imageId: string): boolean {
 /**
  * Get the appropriate image URL, handling both File objects and Cloudflare image IDs
  */
-export function getDisplayUrl(
-	source: File | string,
-	variant: string = "thumbnail",
-	accountHash?: string
-): string {
+export function getDisplayUrl(source: File | string, variant: string = "thumbnail"): string {
 	if (source instanceof File) {
 		// For File objects, create a temporary object URL
 		return URL.createObjectURL(source);
@@ -39,7 +30,7 @@ export function getDisplayUrl(
 
 	// For Cloudflare image IDs
 	if (typeof source === "string" && isValidImageId(source)) {
-		return getImageUrl(source, variant, accountHash);
+		return getImageUrl(source, variant);
 	}
 
 	// Fallback for invalid/placeholder IDs

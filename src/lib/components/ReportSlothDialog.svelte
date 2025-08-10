@@ -131,7 +131,7 @@
 							{/if}
 						</div>
 						{#if stepNum < 3}
-							<div class="ml-2 h-0.5 flex-1 bg-gray-200">
+							<div class="mx-2 h-0.5 flex-1 bg-gray-200">
 								<div
 									class="h-full bg-amber-600 transition-all duration-300 {step > stepNum
 										? 'w-full'
@@ -226,6 +226,7 @@
 						id="notes"
 						bind:value={notes}
 						rows="3"
+						maxlength="500"
 						class="block w-full rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm"
 						placeholder="Any additional details about this sloth..."
 					></textarea>

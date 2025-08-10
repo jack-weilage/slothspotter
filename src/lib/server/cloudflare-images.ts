@@ -4,6 +4,7 @@
  */
 
 import { CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_IMAGES_TOKEN } from "$env/static/private";
+import { generateLQIP } from "lquip";
 
 export interface CloudflareImageUploadResponse {
 	result: {
@@ -46,7 +47,8 @@ export async function uploadImage(
 
 	const formData = new FormData();
 	formData.append("file", file);
-	formData.append("metadata", JSON.stringify({ imageId, uploaderId }));
+	formData.append("creator", uploaderId);
+	formData.append("metadata", JSON.stringify({ imageId }));
 
 	const url = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/images/v1`;
 
@@ -77,42 +79,6 @@ export async function uploadImage(
 			error instanceof Error ? error.message : "Failed to upload image to Cloudflare Images",
 		);
 	}
-}
-
-/**
- * Generate a Cloudflare Images delivery URL
- */
-export function getImageUrl(
-	imageId: string,
-	variant: string = "public",
-	accountHash?: string,
-): string {
-	// If no account hash provided, use the default delivery URL format
-	if (!accountHash) {
-		return `https://imagedelivery.net/${accountHash || "default"}/${imageId}/${variant}`;
-	}
-
-	return `https://imagedelivery.net/${accountHash}/${imageId}/${variant}`;
-}
-
-/**
- * Get multiple image variant URLs
- */
-export function getImageVariants(
-	imageId: string,
-	accountHash?: string,
-): {
-	thumbnail: string;
-	medium: string;
-	large: string;
-	public: string;
-} {
-	return {
-		thumbnail: getImageUrl(imageId, "thumbnail", accountHash),
-		medium: getImageUrl(imageId, "medium", accountHash),
-		large: getImageUrl(imageId, "large", accountHash),
-		public: getImageUrl(imageId, "public", accountHash),
-	};
 }
 
 /**

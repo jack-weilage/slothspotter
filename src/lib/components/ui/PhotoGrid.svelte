@@ -20,7 +20,6 @@
 		class?: string;
 	} = $props();
 
-
 	function removePhoto(index: number) {
 		if (onRemovePhoto) {
 			onRemovePhoto(index);

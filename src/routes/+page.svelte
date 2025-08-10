@@ -8,6 +8,7 @@
 	import Control from "$lib/components/map/Control.svelte";
 	import ReportSlothDialog from "$lib/components/ReportSlothDialog.svelte";
 	import LoginDialog from "$lib/components/LoginDialog.svelte";
+	import SlothPreviewPopup from "$lib/components/SlothPreviewPopup.svelte";
 	import { SlothStatus } from "$lib";
 	import maplibre from "maplibre-gl";
 	import PlusIcon from "@lucide/svelte/icons/plus";
@@ -24,14 +25,6 @@
 		return {
 			color: sloth.status === SlothStatus.Active ? "#8B5A2B" : "#6B7280",
 		};
-	}
-
-	function formatDate(date: Date): string {
-		return new Intl.DateTimeFormat("en-US", {
-			month: "short",
-			day: "numeric",
-			year: "numeric",
-		}).format(date);
 	}
 
 	function handleReportClick() {
@@ -62,51 +55,7 @@
 		{#each data.sloths as sloth (sloth.id)}
 			<Marker lngLat={[sloth.longitude, sloth.latitude]} options={getMarkerOptions(sloth)}>
 				<Popup>
-					<div class="max-w-xs rounded bg-white p-4 shadow-lg">
-						<div class="mb-2 flex items-center justify-between">
-							<h3 class="font-semibold text-gray-900">
-								Sloth #{sloth.id.slice(-6)}
-							</h3>
-							<span
-								class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {sloth.status ===
-								SlothStatus.Active
-									? 'bg-green-100 text-green-800'
-									: 'bg-gray-100 text-gray-800'}"
-							>
-								{sloth.status === SlothStatus.Active ? "Active" : "Removed"}
-							</span>
-						</div>
-
-						<div class="space-y-2 text-sm text-gray-600">
-							<p>
-								<span class="font-medium">Discovered:</span>
-								{formatDate(sloth.discoveredAt)}
-							</p>
-
-							<p>
-								<span class="font-medium">Spotted by:</span>
-								{sloth.totalSpots}
-								{sloth.totalSpots === 1 ? "person" : "people"}
-							</p>
-
-							{#if sloth.lastSightingAt}
-								<p>
-									<span class="font-medium">Last seen:</span>
-									{formatDate(sloth.lastSightingAt)}
-								</p>
-							{/if}
-						</div>
-
-						<button
-							class="mt-3 w-full rounded bg-amber-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-amber-700"
-							onclick={() => {
-								// TODO: Navigate to individual sloth page
-								console.log("View sloth details:", sloth.id);
-							}}
-						>
-							View Details
-						</button>
-					</div>
+					<SlothPreviewPopup {sloth} />
 				</Popup>
 			</Marker>
 		{/each}

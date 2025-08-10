@@ -9,6 +9,7 @@ import { fail } from "@sveltejs/kit";
 import { randomUUID } from "crypto";
 import { deleteImage, uploadImage } from "$lib/server/cloudflare-images";
 import { type } from "arktype";
+import { generateLQIP } from "lquip";
 
 export const load: PageServerLoad = async ({ locals, platform }) => {
 	const db = connect(platform!.env.DB);
@@ -29,7 +30,7 @@ export const load: PageServerLoad = async ({ locals, platform }) => {
 const FormSchema = type({
 	longitude: "string.numeric.parse",
 	latitude: "string.numeric.parse",
-	notes: "string",
+	notes: "string < 500",
 	photos: "0 < File[] <= 3",
 }).narrow(({ photos }, ctx) => {
 	for (const photo of photos) {
@@ -37,6 +38,14 @@ const FormSchema = type({
 			return ctx.reject({
 				expected: "less than 10MB",
 				actual: `${(photo.size / 1024 / 1024).toFixed(2)}MB`,
+				path: ["photos"],
+			});
+		}
+
+		if (photo.type && !photo.type.startsWith("image/")) {
+			return ctx.reject({
+				expected: "an image file",
+				actual: photo.type,
 				path: ["photos"],
 			});
 		}
@@ -116,14 +125,18 @@ export const actions: Actions = {
 			for (const photo of photos) {
 				const photoId = randomUUID();
 
+				const buffer = await photo.arrayBuffer();
+
 				// Upload to Cloudflare Images
 				const cloudflareImageId = await uploadImage(photo, photoId, locals.user.id);
 				uploadedPhotos.push(cloudflareImageId);
 
+				const lqip = await generateLQIP(buffer);
 				await db.insert(schema.photo).values({
 					id: photoId,
 					sightingId,
 					cloudflareImageId,
+					lqip,
 				});
 			}
 		} catch (uploadError) {

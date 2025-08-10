@@ -1,7 +1,8 @@
 import { drizzle } from "drizzle-orm/d1";
 import * as schema from "./schema";
-import { and, eq, desc, sql } from "drizzle-orm";
+import { and, eq, desc, asc, exists, sql } from "drizzle-orm";
 import { SlothStatus } from "$lib";
+import { SightingType } from "./schema";
 
 export const connect = (db: D1Database) => drizzle(db, { schema });
 export type Database = ReturnType<typeof connect>;
@@ -120,6 +121,14 @@ export type SlothMapData = {
 	totalSpots: number;
 	discoveredAt: Date;
 	lastSightingAt: Date | null;
+	discoverer: {
+		displayName: string;
+		avatarUrl: string | null;
+	} | null;
+	primaryPhoto?: {
+		url: string;
+		lqip: number;
+	};
 };
 
 export async function getSlothsForMap(db: Database): Promise<SlothMapData[]> {
@@ -129,11 +138,35 @@ export async function getSlothsForMap(db: Database): Promise<SlothMapData[]> {
 
 	const slothsWithSpots = await Promise.all(
 		sloths.map(async (sloth) => {
-			const [totalSpots, lastSighting] = await Promise.all([
+			const [totalSpots, lastSighting, discoverer, primaryPhoto] = await Promise.all([
 				getSpotCountForSloth(db, sloth.id),
 				db.query.sighting.findFirst({
 					where: eq(schema.sighting.slothId, sloth.id),
 					orderBy: [desc(schema.sighting.createdAt)],
+				}),
+				// Get discoverer info
+				db.query.user.findFirst({
+					where: eq(schema.user.id, sloth.discoveredBy),
+					columns: {
+						displayName: true,
+						avatarUrl: true,
+					},
+				}),
+				// Get the first photo from the discovery sighting
+				db.query.photo.findFirst({
+					where: exists(
+						db
+							.select()
+							.from(schema.sighting)
+							.where(
+								and(
+									eq(schema.sighting.slothId, sloth.id),
+									eq(schema.sighting.sightingType, SightingType.Discovery),
+									eq(schema.sighting.id, schema.photo.sightingId),
+								),
+							),
+					),
+					orderBy: [asc(schema.photo.createdAt)],
 				}),
 			]);
 
@@ -145,6 +178,18 @@ export async function getSlothsForMap(db: Database): Promise<SlothMapData[]> {
 				totalSpots,
 				discoveredAt: sloth.discoveredAt,
 				lastSightingAt: lastSighting?.createdAt || null,
+				discoverer: discoverer
+					? {
+							displayName: discoverer.displayName,
+							avatarUrl: discoverer.avatarUrl,
+						}
+					: null,
+				primaryPhoto: primaryPhoto
+					? {
+							url: primaryPhoto.cloudflareImageId,
+							lqip: primaryPhoto.lqip,
+						}
+					: undefined,
 			};
 		}),
 	);
