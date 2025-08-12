@@ -37,7 +37,7 @@
 	}
 </script>
 
-<div class="relative h-[calc(100vh-4rem)]">
+<div class="relative h-[calc(100dvh-4rem)]">
 	<Map
 		options={{
 			style: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
