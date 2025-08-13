@@ -9,6 +9,7 @@
 	import ReportSlothDialog from "$lib/components/ReportSlothDialog.svelte";
 	import LoginDialog from "$lib/components/LoginDialog.svelte";
 	import SlothPreviewPopup from "$lib/components/SlothPreviewPopup.svelte";
+	import SEO from "$lib/components/SEO.svelte";
 	import { SlothStatus } from "$lib";
 	import maplibre from "maplibre-gl";
 	import PlusIcon from "@lucide/svelte/icons/plus";
@@ -36,6 +37,11 @@
 		showReportDialog = true;
 	}
 </script>
+
+<SEO
+	title="SlothSpotter"
+	description="Discover and report stuffed sloth sightings around Bellingham, Washington. Join the community tracking these delightful creatures across the city."
+/>
 
 <div class="relative h-[calc(100dvh-4rem)]">
 	<Map

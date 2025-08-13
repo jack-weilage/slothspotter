@@ -2,6 +2,7 @@
 	import type { PageData } from "./$types";
 	import { SlothStatus } from "$lib";
 	import { goto } from "$app/navigation";
+	import SEO from "$lib/components/SEO.svelte";
 
 	let { data }: { data: PageData } = $props();
 
@@ -20,9 +21,15 @@
 	}
 </script>
 
-<svelte:head>
-	<title>Sloth #{data.sloth.id.slice(-6)} - SlothSpotter</title>
-</svelte:head>
+<SEO
+	title="Sloth #{data.sloth.id.slice(-6)}"
+	description="View details and location of sloth #{data.sloth.id.slice(
+		-6,
+	)} discovered on {formatDate(data.sloth.discoveredAt)} in Bellingham, WA. Status: {data.sloth
+		.status === SlothStatus.Active
+		? 'Active'
+		: 'Removed'}."
+/>
 
 <div class="min-h-screen bg-gray-50">
 	<div class="mx-auto max-w-4xl px-4 py-8">
