@@ -127,7 +127,7 @@ export type SlothMapData = {
 	} | null;
 	primaryPhoto?: {
 		url: string;
-		lqip?: number;
+		lqip: number | null;
 	};
 };
 

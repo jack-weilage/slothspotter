@@ -11,7 +11,6 @@
 		class: className = "",
 		removable = true,
 		variant = "thumbnail",
-		accountHash,
 	}: {
 		src?: string;
 		source?: File | string;
@@ -21,11 +20,10 @@
 		class?: string;
 		removable?: boolean;
 		variant?: string;
-		accountHash?: string;
 	} = $props();
 
 	// Determine the actual image source URL
-	const imageUrl = $derived(src || (source ? getDisplayUrl(source, variant, accountHash) : ""));
+	const imageUrl = $derived(src || (source ? getDisplayUrl(source, variant) : ""));
 </script>
 
 <div class="relative inline-block {className}">
