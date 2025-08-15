@@ -6,6 +6,7 @@
 	import { getImageUrl } from "$lib/utils/image-urls";
 	import { Button } from "$lib/components/ui/button";
 	import { Badge } from "$lib/components/ui/badge";
+	import * as Avatar from "$lib/components/ui/avatar";
 
 	let { sloth }: { sloth: SlothMapData } = $props();
 
@@ -49,17 +50,19 @@
 
 		{#if sloth.discoverer}
 			<div class="mb-3 flex items-center gap-2 text-sm text-gray-600">
-				{#if sloth.discoverer.avatarUrl}
-					<img
+				<Avatar.Root class="size-6">
+					<Avatar.Image
 						src={sloth.discoverer.avatarUrl}
 						alt="{sloth.discoverer.displayName}'s avatar"
-						class="h-6 w-6 rounded-full"
 					/>
-				{:else}
-					<div class="flex h-6 w-6 items-center justify-center rounded-full bg-gray-300 text-xs">
-						{sloth.discoverer.displayName.charAt(0).toUpperCase()}
-					</div>
-				{/if}
+					<Avatar.Fallback class="text-xs">
+						{sloth.discoverer.displayName
+							.split(" ")
+							.slice(0, 2)
+							.map((s) => s[0].toLocaleUpperCase())
+							.join("")}
+					</Avatar.Fallback>
+				</Avatar.Root>
 				<span>
 					<span class="font-medium">Discovered by</span>
 					{sloth.discoverer.displayName}
