@@ -1,17 +1,12 @@
 <script lang="ts">
 	import "../app.css";
 	import favicon from "$lib/assets/favicon.svg";
-	import LoginDialog from "$lib/components/LoginDialog.svelte";
+	import LoginDialog, { openLoginDialog } from "$lib/components/LoginDialog.svelte";
 	import { enhance } from "$app/forms";
 	import { Button } from "$lib/components/ui/button";
 	import * as Avatar from "$lib/components/ui/avatar";
 
 	let { children, data } = $props();
-	let showLoginDialog = $state(false);
-
-	function openLoginDialog() {
-		showLoginDialog = true;
-	}
 </script>
 
 <svelte:head>
@@ -48,4 +43,4 @@
 
 {@render children?.()}
 
-<LoginDialog bind:open={showLoginDialog} />
+<LoginDialog />
