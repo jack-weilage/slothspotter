@@ -3,9 +3,9 @@
 
 	import type { SlothMapData } from "$lib/server/db";
 	import { SlothStatus } from "$lib";
-	import { goto } from "$app/navigation";
 	import { getImageUrl } from "$lib/utils/image-urls";
 	import { Button } from "$lib/components/ui/button";
+	import { Badge } from "$lib/components/ui/badge";
 
 	let { sloth }: { sloth: SlothMapData } = $props();
 
@@ -15,10 +15,6 @@
 			day: "numeric",
 			year: "numeric",
 		}).format(date);
-	}
-
-	function viewSlothDetails() {
-		goto(`/sloth/${sloth.id}`);
 	}
 </script>
 
@@ -46,14 +42,9 @@
 			<h3 class="font-semibold text-gray-900">
 				Sloth #{sloth.id.slice(-6)}
 			</h3>
-			<span
-				class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {sloth.status ===
-				SlothStatus.Active
-					? 'bg-green-100 text-green-800'
-					: 'bg-gray-100 text-gray-800'}"
-			>
+			<Badge variant={sloth.status === SlothStatus.Active ? "active" : "inactive"}>
 				{sloth.status === SlothStatus.Active ? "Active" : "Removed"}
-			</span>
+			</Badge>
 		</div>
 
 		{#if sloth.discoverer}
@@ -96,11 +87,7 @@
 			{/if}
 		</div>
 
-		<Button
-			class="mt-3 w-full bg-amber-600 hover:bg-amber-700"
-			onclick={viewSlothDetails}
-			size="sm"
-		>
+		<Button class="mt-3 w-full bg-amber-600 hover:bg-amber-700" href="/sloth/{sloth.id}" size="sm">
 			View Full Details
 		</Button>
 	</div>

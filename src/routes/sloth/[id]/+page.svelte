@@ -3,6 +3,7 @@
 	import { SlothStatus } from "$lib";
 	import SEO from "$lib/components/SEO.svelte";
 	import { Button } from "$lib/components/ui/button";
+	import { Badge } from "$lib/components/ui/badge";
 
 	let { data }: { data: PageData } = $props();
 
@@ -33,14 +34,9 @@
 		<div class="mb-6 flex items-center justify-between">
 			<Button href="/" variant="secondary" size="default">← Back to Map</Button>
 
-			<span
-				class="inline-flex items-center rounded-full px-3 py-1 text-sm font-medium {data.sloth
-					.status === SlothStatus.Active
-					? 'bg-green-100 text-green-800'
-					: 'bg-gray-100 text-gray-800'}"
-			>
+			<Badge variant={data.sloth.status === SlothStatus.Active ? "active" : "inactive"}>
 				{data.sloth.status === SlothStatus.Active ? "Active" : "Removed"}
-			</span>
+			</Badge>
 		</div>
 
 		<!-- Main Content -->
