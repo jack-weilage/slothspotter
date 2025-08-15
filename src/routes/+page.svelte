@@ -21,7 +21,6 @@
 
 	const BELLINGHAM_COORDINATES: LngLatLike = [-122.478, 48.754];
 
-	let showReportDialog = $state(false);
 	let reportLocation: LngLatLike | undefined = $state(undefined);
 
 	function getMarkerOptions(sloth: PageData["sloths"][0]): MarkerOptions {
@@ -37,7 +36,7 @@
 		}
 
 		reportLocation = undefined;
-		showReportDialog = true;
+		openReportSlothDialog();
 	}
 </script>
 
@@ -72,7 +71,7 @@
 
 	<!-- Floating Action Button for Report Sloth -->
 	<Button
-		onclick={openReportSlothDialog}
+		onclick={handleReportClick}
 		size="icon"
 		class="absolute right-6 bottom-6 h-14 w-14 rounded-full bg-amber-600 text-white shadow-lg transition-all hover:scale-105 hover:bg-amber-700 focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 md:h-12 md:w-12"
 		aria-label="Report a new sloth"
