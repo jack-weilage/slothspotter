@@ -9,6 +9,8 @@
 <script lang="ts">
 	import type { LngLatLike } from "maplibre-gl";
 
+	import { dev } from "$app/environment";
+
 	import maplibre from "maplibre-gl";
 	import PhotoGrid from "./ui/PhotoGrid.svelte";
 	import PhotoThumbnail from "./ui/PhotoThumbnail.svelte";
@@ -26,6 +28,7 @@
 	import { Progress } from "$lib/components/ui/progress";
 	import { Label } from "$lib/components/ui/label";
 	import { Textarea } from "$lib/components/ui/textarea";
+	import * as Alert from "$lib/components/ui/alert";
 
 	let {
 		initialLocation,
@@ -287,14 +290,17 @@
 					</div>
 
 					{#if errorMessage}
-						<div class="mb-4 rounded-md bg-red-50 p-4">
-							<div class="flex">
-								<AlertCircleIcon class="h-5 w-5 text-red-400" />
-								<div class="ml-3">
-									<p class="text-sm text-red-800">{errorMessage}</p>
-								</div>
-							</div>
-						</div>
+						<Alert.Root variant="destructive">
+							<AlertCircleIcon />
+							<Alert.Title>Failed to report!</Alert.Title>
+							<Alert.Description>
+								An error occurred while submitting your report. Please try again later.
+
+								<br />
+
+								<code class="text-xs text-red-600">{errorMessage}</code>
+							</Alert.Description>
+						</Alert.Root>
 					{/if}
 
 					<form
