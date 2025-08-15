@@ -15,6 +15,7 @@
 	import AlertCircleIcon from "@lucide/svelte/icons/alert-circle";
 	import Control from "./map/Control.svelte";
 	import { Button } from "$lib/components/ui/button";
+	import { Progress } from "$lib/components/ui/progress";
 
 	let {
 		open = $bindable(false),
@@ -327,12 +328,7 @@
 					{#if isSubmitting && uploadProgress.total > 0}
 						<div class="mb-4 space-y-2">
 							<p class="text-sm text-gray-600">{uploadProgress.message}</p>
-							<div class="h-2 w-full rounded-full bg-gray-200">
-								<div
-									class="h-2 rounded-full bg-amber-600 transition-all duration-300"
-									style="width: {(uploadProgress.current / uploadProgress.total) * 100}%"
-								></div>
-							</div>
+							<Progress value={(uploadProgress.current / uploadProgress.total) * 100} />
 							<p class="text-xs text-gray-500">
 								{uploadProgress.current} of {uploadProgress.total} photos uploaded
 							</p>
