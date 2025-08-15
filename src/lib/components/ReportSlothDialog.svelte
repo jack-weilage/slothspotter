@@ -24,6 +24,7 @@
 	import * as Dialog from "$lib/components/ui/dialog";
 	import { Button } from "$lib/components/ui/button";
 	import { Progress } from "$lib/components/ui/progress";
+	import { Label } from "$lib/components/ui/label";
 	import { Textarea } from "$lib/components/ui/textarea";
 
 	let {
@@ -168,9 +169,9 @@
 			{#if step === 1}
 				<div class="space-y-4">
 					<h3 class="text-lg font-medium">Take or Upload Photos</h3>
-					<p class="text-sm text-gray-600">
-						Add up to {MAX_PHOTOS} photos of the sloth. At least one photo is required.
-					</p>
+					<Label for="photo-upload" class="text-sm text-gray-500">
+						Add up to {MAX_PHOTOS} photos of the sloth. At least one photo is required to continue.
+					</Label>
 
 					<input
 						bind:this={fileInput}
@@ -236,9 +237,7 @@
 
 					<!-- Notes -->
 					<div class="space-y-2">
-						<label for="notes" class="block text-sm font-medium text-gray-700">
-							Notes (optional)
-						</label>
+						<Label for="notes" class="text-gray-700">Notes (optional)</Label>
 						<Textarea
 							id="notes"
 							bind:value={notes}

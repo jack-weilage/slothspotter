@@ -61,16 +61,4 @@
 			/>
 		{/each}
 	</div>
-
-	{#if photos.length >= maxPhotos}
-		<p class="text-xs text-gray-500">
-			Maximum {maxPhotos} photos allowed
-		</p>
-	{/if}
-
-	{#if photos.length === 0}
-		<p class="text-sm text-gray-600">
-			Take or upload photos of the sloth (up to {maxPhotos} photos)
-		</p>
-	{/if}
 </div>
