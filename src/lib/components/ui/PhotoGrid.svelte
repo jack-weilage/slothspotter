@@ -1,6 +1,7 @@
 <script lang="ts">
 	import PhotoThumbnail from "./PhotoThumbnail.svelte";
 	import CameraIcon from "@lucide/svelte/icons/camera";
+	import { Button } from "$lib/components/ui/button";
 
 	let {
 		photos = $bindable([]),
@@ -37,17 +38,18 @@
 <div class="space-y-3 {className}">
 	<div class="flex flex-wrap gap-2">
 		{#if photos.length < maxPhotos && !disabled}
-			<button
+			<Button
 				type="button"
 				onclick={onAddPhoto}
-				class="flex h-20 w-20 items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 transition-colors hover:border-gray-400 hover:bg-gray-100 focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 focus:outline-none"
+				variant="outline"
+				class="h-20 w-20 border-2 border-dashed border-gray-300 bg-gray-50 hover:border-gray-400 hover:bg-gray-100"
 				aria-label="Add photo"
 			>
 				<div class="text-center">
 					<CameraIcon class="mx-auto mb-1 h-6 w-6 text-gray-400" />
 					<span class="text-xs text-gray-500">Add Photo</span>
 				</div>
-			</button>
+			</Button>
 		{/if}
 		{#each photos as photo, index (photo.name + photo.size + index)}
 			<PhotoThumbnail

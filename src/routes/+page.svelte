@@ -13,6 +13,7 @@
 	import { SlothStatus } from "$lib";
 	import maplibre from "maplibre-gl";
 	import PlusIcon from "@lucide/svelte/icons/plus";
+	import { Button } from "$lib/components/ui/button";
 
 	let { data } = $props();
 
@@ -68,14 +69,14 @@
 	</Map>
 
 	<!-- Floating Action Button for Report Sloth -->
-	<button
-		type="button"
+	<Button
 		onclick={handleReportClick}
-		class="absolute right-6 bottom-6 flex h-14 w-14 items-center justify-center rounded-full bg-amber-600 text-white shadow-lg transition-all hover:scale-105 hover:bg-amber-700 focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 focus:outline-none md:h-12 md:w-12"
+		size="icon"
+		class="absolute right-6 bottom-6 h-14 w-14 rounded-full bg-amber-600 text-white shadow-lg transition-all hover:scale-105 hover:bg-amber-700 focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 md:h-12 md:w-12"
 		aria-label="Report a new sloth"
 	>
 		<PlusIcon class="h-6 w-6 md:h-5 md:w-5" />
-	</button>
+	</Button>
 </div>
 
 <!-- Dialogs -->

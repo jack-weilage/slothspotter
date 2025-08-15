@@ -3,6 +3,7 @@
 	import favicon from "$lib/assets/favicon.svg";
 	import LoginDialog from "$lib/components/LoginDialog.svelte";
 	import { enhance } from "$app/forms";
+	import { Button } from "$lib/components/ui/button";
 
 	let { children, data } = $props();
 	let showLoginDialog = $state(false);
@@ -28,18 +29,11 @@
 				<span class="text-sm font-medium text-gray-700">{data.user.displayName}</span>
 			</div>
 			<form use:enhance method="POST" action="/auth/logout">
-				<button class="text-sm text-gray-500 transition-colors hover:text-gray-700">
-					Log out
-				</button>
+				<Button variant="ghost" size="sm" type="submit">Log out</Button>
 			</form>
 		</div>
 	{:else}
-		<button
-			onclick={openLoginDialog}
-			class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
-		>
-			Log in
-		</button>
+		<Button onclick={openLoginDialog} variant="default" size="sm">Log in</Button>
 	{/if}
 </header>
 

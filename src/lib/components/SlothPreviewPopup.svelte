@@ -5,6 +5,7 @@
 	import { SlothStatus } from "$lib";
 	import { goto } from "$app/navigation";
 	import { getImageUrl } from "$lib/utils/image-urls";
+	import { Button } from "$lib/components/ui/button";
 
 	let { sloth }: { sloth: SlothMapData } = $props();
 
@@ -95,11 +96,12 @@
 			{/if}
 		</div>
 
-		<button
-			class="mt-3 w-full rounded bg-amber-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-amber-700 focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 focus:outline-none"
+		<Button
+			class="mt-3 w-full bg-amber-600 hover:bg-amber-700"
 			onclick={viewSlothDetails}
+			size="sm"
 		>
 			View Full Details
-		</button>
+		</Button>
 	</div>
 </div>

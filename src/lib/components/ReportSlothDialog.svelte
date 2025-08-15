@@ -14,6 +14,7 @@
 	import LoaderIcon from "@lucide/svelte/icons/loader-2";
 	import AlertCircleIcon from "@lucide/svelte/icons/alert-circle";
 	import Control from "./map/Control.svelte";
+	import { Button } from "$lib/components/ui/button";
 
 	let {
 		open = $bindable(false),
@@ -338,10 +339,11 @@
 						</div>
 					{/if}
 
-					<button
+					<Button
 						type="submit"
 						disabled={isSubmitting}
-						class="flex w-full items-center justify-center rounded-md border border-transparent bg-amber-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-amber-700 focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+						class="w-full bg-amber-600 hover:bg-amber-700"
+						size="default"
 					>
 						{#if isSubmitting}
 							<LoaderIcon class="mr-2 h-4 w-4 animate-spin" />
@@ -349,33 +351,35 @@
 						{:else}
 							Submit Report
 						{/if}
-					</button>
+					</Button>
 				</form>
 			</div>
 		{/if}
 
 		<!-- Navigation buttons -->
 		<div class="mt-6 flex justify-between">
-			<button
+			<Button
 				type="button"
 				onclick={prevStep}
 				disabled={step === 1}
-				class="flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+				variant="outline"
+				size="default"
 			>
 				<ChevronLeftIcon class="mr-1 h-4 w-4" />
 				Back
-			</button>
+			</Button>
 
 			{#if step < 3}
-				<button
+				<Button
 					type="button"
 					onclick={nextStep}
 					disabled={!canProceed()}
-					class="flex items-center rounded-md border border-transparent bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+					class="bg-amber-600 hover:bg-amber-700"
+					size="default"
 				>
 					Next
 					<ChevronRightIcon class="ml-1 h-4 w-4" />
-				</button>
+				</Button>
 			{/if}
 		</div>
 	</div>

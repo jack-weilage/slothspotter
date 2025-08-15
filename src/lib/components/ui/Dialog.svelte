@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from "svelte";
 	import XIcon from "@lucide/svelte/icons/x";
+	import { Button } from "$lib/components/ui/button";
 
 	let {
 		open = $bindable(false),
@@ -61,14 +62,16 @@
 				{/if}
 
 				{#if showCloseButton}
-					<button
+					<Button
 						type="button"
 						onclick={closeDialog}
-						class="p-1 text-gray-400 transition-colors hover:text-gray-600"
+						variant="ghost"
+						size="icon"
+						class="h-8 w-8 text-gray-400 hover:text-gray-600"
 						aria-label="Close dialog"
 					>
 						<XIcon class="h-6 w-6" />
-					</button>
+					</Button>
 				{/if}
 			</div>
 		{/if}
