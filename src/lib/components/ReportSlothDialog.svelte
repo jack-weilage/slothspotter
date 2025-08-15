@@ -24,6 +24,7 @@
 	import * as Dialog from "$lib/components/ui/dialog";
 	import { Button } from "$lib/components/ui/button";
 	import { Progress } from "$lib/components/ui/progress";
+	import { Textarea } from "$lib/components/ui/textarea";
 
 	let {
 		initialLocation,
@@ -238,14 +239,13 @@
 						<label for="notes" class="block text-sm font-medium text-gray-700">
 							Notes (optional)
 						</label>
-						<textarea
+						<Textarea
 							id="notes"
 							bind:value={notes}
-							rows="3"
-							maxlength="500"
-							class="block w-full rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm"
+							rows={3}
+							maxlength={500}
 							placeholder="Any additional details about this sloth..."
-						></textarea>
+						/>
 					</div>
 				</div>
 			{/if}
