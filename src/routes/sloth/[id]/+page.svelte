@@ -1,8 +1,9 @@
 <script lang="ts">
 	import type { PageData } from "./$types";
 	import { SlothStatus } from "$lib";
-	import { goto } from "$app/navigation";
 	import SEO from "$lib/components/SEO.svelte";
+	import { Button } from "$lib/components/ui/button";
+	import { Badge } from "$lib/components/ui/badge";
 
 	let { data }: { data: PageData } = $props();
 
@@ -14,10 +15,6 @@
 			hour: "numeric",
 			minute: "2-digit",
 		}).format(date);
-	}
-
-	function goBack() {
-		goto("/");
 	}
 </script>
 
@@ -35,21 +32,11 @@
 	<div class="mx-auto max-w-4xl px-4 py-8">
 		<!-- Header -->
 		<div class="mb-6 flex items-center justify-between">
-			<button
-				onclick={goBack}
-				class="flex items-center gap-2 rounded bg-gray-600 px-4 py-2 text-white transition-colors hover:bg-gray-700"
-			>
-				← Back to Map
-			</button>
+			<Button href="/" variant="secondary" size="default">← Back to Map</Button>
 
-			<span
-				class="inline-flex items-center rounded-full px-3 py-1 text-sm font-medium {data.sloth
-					.status === SlothStatus.Active
-					? 'bg-green-100 text-green-800'
-					: 'bg-gray-100 text-gray-800'}"
-			>
+			<Badge variant={data.sloth.status === SlothStatus.Active ? "active" : "inactive"}>
 				{data.sloth.status === SlothStatus.Active ? "Active" : "Removed"}
-			</span>
+			</Badge>
 		</div>
 
 		<!-- Main Content -->

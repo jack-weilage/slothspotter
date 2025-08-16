@@ -1,15 +1,12 @@
 <script lang="ts">
 	import "../app.css";
 	import favicon from "$lib/assets/favicon.svg";
-	import LoginDialog from "$lib/components/LoginDialog.svelte";
+	import LoginDialog, { openLoginDialog } from "$lib/components/LoginDialog.svelte";
 	import { enhance } from "$app/forms";
+	import { Button } from "$lib/components/ui/button";
+	import * as Avatar from "$lib/components/ui/avatar";
 
 	let { children, data } = $props();
-	let showLoginDialog = $state(false);
-
-	function openLoginDialog() {
-		showLoginDialog = true;
-	}
 </script>
 
 <svelte:head>
@@ -22,27 +19,28 @@
 	{#if data.user}
 		<div class="flex items-center gap-3">
 			<div class="flex items-center gap-2">
-				{#if data.user.avatarUrl}
-					<img src={data.user.avatarUrl} alt={data.user.displayName} class="h-8 w-8 rounded-full" />
-				{/if}
+				<Avatar.Root>
+					<Avatar.Image src={data.user.avatarUrl} alt="{data.user.displayName}'s avatar'" />
+					<Avatar.Fallback>
+						{data.user.displayName
+							.split(" ")
+							.slice(0, 2)
+							.map((s) => s[0].toLocaleUpperCase())
+							.join("")}
+					</Avatar.Fallback>
+				</Avatar.Root>
+
 				<span class="text-sm font-medium text-gray-700">{data.user.displayName}</span>
 			</div>
 			<form use:enhance method="POST" action="/auth/logout">
-				<button class="text-sm text-gray-500 transition-colors hover:text-gray-700">
-					Log out
-				</button>
+				<Button variant="ghost" size="sm" type="submit">Log out</Button>
 			</form>
 		</div>
 	{:else}
-		<button
-			onclick={openLoginDialog}
-			class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
-		>
-			Log in
-		</button>
+		<Button onclick={openLoginDialog} variant="default" size="sm">Log in</Button>
 	{/if}
 </header>
 
 {@render children?.()}
 
-<LoginDialog bind:open={showLoginDialog} />
+<LoginDialog />

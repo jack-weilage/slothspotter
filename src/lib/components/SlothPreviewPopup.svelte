@@ -3,8 +3,10 @@
 
 	import type { SlothMapData } from "$lib/server/db";
 	import { SlothStatus } from "$lib";
-	import { goto } from "$app/navigation";
 	import { getImageUrl } from "$lib/utils/image-urls";
+	import { Button } from "$lib/components/ui/button";
+	import { Badge } from "$lib/components/ui/badge";
+	import * as Avatar from "$lib/components/ui/avatar";
 
 	let { sloth }: { sloth: SlothMapData } = $props();
 
@@ -14,10 +16,6 @@
 			day: "numeric",
 			year: "numeric",
 		}).format(date);
-	}
-
-	function viewSlothDetails() {
-		goto(`/sloth/${sloth.id}`);
 	}
 </script>
 
@@ -45,29 +43,26 @@
 			<h3 class="font-semibold text-gray-900">
 				Sloth #{sloth.id.slice(-6)}
 			</h3>
-			<span
-				class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {sloth.status ===
-				SlothStatus.Active
-					? 'bg-green-100 text-green-800'
-					: 'bg-gray-100 text-gray-800'}"
-			>
+			<Badge variant={sloth.status === SlothStatus.Active ? "active" : "inactive"}>
 				{sloth.status === SlothStatus.Active ? "Active" : "Removed"}
-			</span>
+			</Badge>
 		</div>
 
 		{#if sloth.discoverer}
 			<div class="mb-3 flex items-center gap-2 text-sm text-gray-600">
-				{#if sloth.discoverer.avatarUrl}
-					<img
+				<Avatar.Root class="size-6">
+					<Avatar.Image
 						src={sloth.discoverer.avatarUrl}
 						alt="{sloth.discoverer.displayName}'s avatar"
-						class="h-6 w-6 rounded-full"
 					/>
-				{:else}
-					<div class="flex h-6 w-6 items-center justify-center rounded-full bg-gray-300 text-xs">
-						{sloth.discoverer.displayName.charAt(0).toUpperCase()}
-					</div>
-				{/if}
+					<Avatar.Fallback class="text-xs">
+						{sloth.discoverer.displayName
+							.split(" ")
+							.slice(0, 2)
+							.map((s) => s[0].toLocaleUpperCase())
+							.join("")}
+					</Avatar.Fallback>
+				</Avatar.Root>
 				<span>
 					<span class="font-medium">Discovered by</span>
 					{sloth.discoverer.displayName}
@@ -95,11 +90,8 @@
 			{/if}
 		</div>
 
-		<button
-			class="mt-3 w-full rounded bg-amber-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-amber-700 focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 focus:outline-none"
-			onclick={viewSlothDetails}
-		>
+		<Button class="mt-3 w-full bg-amber-600 hover:bg-amber-700" href="/sloth/{sloth.id}" size="sm">
 			View Full Details
-		</button>
+		</Button>
 	</div>
 </div>

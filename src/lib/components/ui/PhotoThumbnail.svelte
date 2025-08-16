@@ -1,6 +1,7 @@
 <script lang="ts">
 	import XIcon from "@lucide/svelte/icons/x";
 	import { getDisplayUrl } from "$lib/utils/image-urls";
+	import { Button } from "$lib/components/ui/button";
 
 	let {
 		src,
@@ -28,14 +29,14 @@
 
 <div class="relative inline-block {className}">
 	{#if onClick}
-		<button type="button" onclick={onClick} class="block">
+		<Button type="button" onclick={onClick} variant="ghost" class="h-auto w-auto p-0">
 			<img
 				src={imageUrl}
 				{alt}
 				class="h-20 w-20 cursor-pointer rounded-lg border-2 border-gray-200 object-cover transition-colors hover:border-gray-300"
 				loading="lazy"
 			/>
-		</button>
+		</Button>
 	{:else}
 		<img
 			src={imageUrl}
@@ -46,13 +47,15 @@
 	{/if}
 
 	{#if removable && onRemove}
-		<button
+		<Button
 			type="button"
 			onclick={onRemove}
-			class="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white shadow-lg transition-colors hover:bg-red-600 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none"
+			variant="destructive"
+			size="icon"
+			class="absolute -top-2 -right-2 h-6 w-6 rounded-full shadow-lg"
 			aria-label="Remove photo"
 		>
 			<XIcon class="h-3 w-3" />
-		</button>
+		</Button>
 	{/if}
 </div>

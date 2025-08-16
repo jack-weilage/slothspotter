@@ -1,22 +1,30 @@
-<script lang="ts">
-	import Dialog from "$lib/components/ui/Dialog.svelte";
-	import GoogleIcon from "$lib/components/icons/GoogleIcon.svelte";
+<script lang="ts" module>
+	let open = $state(false);
 
-	let { open = $bindable(false) } = $props();
+	export function openLoginDialog() {
+		open = true;
+	}
 </script>
 
-<Dialog bind:open title="Log in to SlothSpotter">
-	<div class="space-y-4">
-		<p class="text-sm text-gray-600">
-			By logging in, you gain the ability to report new sloths and spot known ones.
-		</p>
+<script lang="ts">
+	import * as Dialog from "$lib/components/ui/dialog";
+	import { Button } from "$lib/components/ui/button";
+	import GoogleIcon from "$lib/components/icons/GoogleIcon.svelte";
+</script>
 
-		<a
-			href="/auth/login/google"
-			class="flex w-full items-center justify-center gap-3 rounded-lg border border-gray-300 bg-white px-4 py-3 font-medium text-gray-700 transition-colors hover:bg-gray-50"
-		>
-			<GoogleIcon class="h-5 w-5" />
-			Log in with Google
-		</a>
-	</div>
-</Dialog>
+<Dialog.Root bind:open>
+	<Dialog.Content>
+		<Dialog.Header>
+			<Dialog.Title>Log in to SlothSpotter</Dialog.Title>
+			<Dialog.Description>
+				By logging in, you gain the ability to report new sloths and spot known ones.
+			</Dialog.Description>
+		</Dialog.Header>
+		<div>
+			<Button href="/auth/login/google" class="w-full">
+				<GoogleIcon class="h-5 w-5" />
+				Log in with Google
+			</Button>
+		</div>
+	</Dialog.Content>
+</Dialog.Root>
