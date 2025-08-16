@@ -9,6 +9,20 @@ import type { OAuth2Tokens } from "arctic";
 import { decodeIdToken } from "arctic";
 import { error, redirect } from "@sveltejs/kit";
 
+interface GoogleIdTokenClaims {
+	iss: string;
+	azp: string;
+	aud: string;
+	sub: string;
+	at_hash: string;
+	name: string;
+	picture: string;
+	given_name: string;
+	family_name: string;
+	iat: number;
+	exp: number;
+}
+
 export const GET: RequestHandler = async function (event) {
 	const code = event.url.searchParams.get("code");
 	const state = event.url.searchParams.get("state");
@@ -29,7 +43,7 @@ export const GET: RequestHandler = async function (event) {
 		// Invalid code or client credentials
 		error(400);
 	}
-	const claims = decodeIdToken(tokens.idToken());
+	const claims = decodeIdToken(tokens.idToken()) as GoogleIdTokenClaims;
 
 	const googleUserId = claims.sub;
 	const displayName = claims.name;
