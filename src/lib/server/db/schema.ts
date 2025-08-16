@@ -9,6 +9,15 @@ export enum AuthProvider {
 }
 
 /**
+ * User roles for access control
+ */
+export enum UserRole {
+	User = "user",
+	Moderator = "moderator",
+	Admin = "admin",
+}
+
+/**
  * User authentication and profile data
  */
 export const user = sqliteTable("user", {
@@ -19,6 +28,8 @@ export const user = sqliteTable("user", {
 	avatarUrl: text("avatar_url"),
 	provider: text("provider").$type<AuthProvider>().notNull(),
 	providerId: text("provider_id").notNull(),
+	role: text("role").$type<UserRole>().notNull().default(UserRole.User),
+	bannedUntil: integer("banned_until", { mode: "timestamp" }),
 	createdAt: integer("created_at", { mode: "timestamp" })
 		.notNull()
 		.$defaultFn(() => new Date()),
@@ -146,7 +157,7 @@ export type NewSpot = typeof spot.$inferInsert;
 export type Spot = typeof spot.$inferSelect;
 
 /**
- * Content types that can be flagged for moderation
+ * Types of user-submitted content
  */
 export enum ContentType {
 	Sloth = "sloth",
@@ -155,35 +166,127 @@ export enum ContentType {
 }
 
 /**
- * Reasons for flagging content
+ * Status of user-submitted content
  */
-export enum FlagReason {
-	Inappropriate = "inappropriate",
-	NotASloth = "not_a_sloth",
-	Duplicate = "duplicate",
-	PrivacyConcern = "privacy_concern",
+export enum ContentStatusType {
+	Pending = "pending",
+	Approved = "approved",
+	Hidden = "hidden",
+	Removed = "removed",
 }
 
 /**
- * Community-driven content moderation system
- * Allows users to flag inappropriate or problematic content
+ * User-submitted content status tracking
  */
-export const moderationFlag = sqliteTable("moderation_flag", {
-	id: text("id").primaryKey(), // UUID
+export const contentStatus = sqliteTable("content_status", {
+	id: text("id")
+		.primaryKey()
+		.$defaultFn(() => randomUUID()),
 	contentType: text("content_type").$type<ContentType>().notNull(),
-	contentId: text("content_id").notNull(), // ID of the flagged content
-	flaggedByUserId: text("flagged_by_user_id")
+	contentId: text("content_id").notNull(),
+	status: text("status").$type<ContentStatusType>().notNull().default(ContentStatusType.Approved),
+	submittedBy: text("submitted_by")
 		.notNull()
 		.references(() => user.id),
-	reason: text("reason").$type<FlagReason>().notNull(),
-	notes: text("notes"), // Optional additional details
-	resolved: integer("resolved", { mode: "boolean" }).notNull().default(false),
-	resolvedBy: text("resolved_by").references(() => user.id),
-	resolvedAt: integer("resolved_at", { mode: "timestamp" }),
+	reviewedBy: text("reviewed_by").references(() => user.id),
+	reviewReason: text("review_reason"),
 	createdAt: integer("created_at", { mode: "timestamp" })
+		.notNull()
+		.$defaultFn(() => new Date()),
+	updatedAt: integer("updated_at", { mode: "timestamp" })
 		.notNull()
 		.$defaultFn(() => new Date()),
 });
 
-export type NewModerationFlag = typeof moderationFlag.$inferInsert;
-export type ModerationFlag = typeof moderationFlag.$inferSelect;
+/**
+ * Types of moderation report reasons
+ */
+export enum ModerationReportReason {
+	Spam = "spam",
+	Inappropriate = "inappropriate",
+	NotSlothRelated = "not_sloth_related",
+	Duplicate = "duplicate",
+	Privacy = "privacy",
+	Other = "other",
+}
+
+/**
+ * Status of moderation reports
+ */
+export enum ModerationReportStatus {
+	Pending = "pending",
+	Reviewed = "reviewed",
+	Resolved = "resolved",
+	Dismissed = "dismissed",
+}
+
+/**
+ * Verdict options for moderation reports
+ */
+export enum ModerationReportVerdict {
+	ContentRemoved = "content_removed",
+	ContentHidden = "content_hidden",
+	UserWarned = "user_warned",
+	UserBanned = "user_banned",
+	NoAction = "no_action",
+}
+
+/**
+ * Log of user-submitted content that has been reported for moderation
+ */
+export const moderationReport = sqliteTable("moderation_report", {
+	id: text("id")
+		.primaryKey()
+		.$defaultFn(() => randomUUID()),
+	contentType: text("content_type").$type<ContentType>().notNull(),
+	contentId: text("content_id").notNull(),
+	reportedBy: text("reported_by")
+		.notNull()
+		.references(() => user.id),
+	reason: text("reason").$type<ModerationReportReason>().notNull(),
+	details: text("details"),
+	status: text("status")
+		.$type<ModerationReportStatus>()
+		.notNull()
+		.default(ModerationReportStatus.Pending),
+	verdict: text("verdict").$type<ModerationReportVerdict>().notNull(),
+	moderatedBy: text("moderated_by").references(() => user.id),
+	moderationNotes: text("moderation_notes"),
+	resolvedAt: integer("resolved_at", { mode: "timestamp" }),
+	createdAt: integer("created_at", { mode: "timestamp" })
+		.notNull()
+		.$defaultFn(() => new Date()),
+	updatedAt: integer("updated_at", { mode: "timestamp" })
+		.notNull()
+		.$defaultFn(() => new Date()),
+});
+
+/**
+ * Types of moderation actions that can be taken by moderators
+ */
+export enum ModerationActionType {
+	AssignRole = "assign_role",
+	BanUser = "ban_user",
+	UnbanUser = "unban_user",
+	RemoveContent = "remove_content",
+	RestoreContent = "restore_content",
+}
+
+/**
+ * Log of moderation actions taken by moderators
+ */
+export const moderationActionLog = sqliteTable("moderation_action_log", {
+	id: text("id")
+		.primaryKey()
+		.$defaultFn(() => randomUUID()),
+	actorId: text("actor_id")
+		.notNull()
+		.references(() => user.id),
+	action: text("action").$type<ModerationActionType>().notNull(),
+	targetType: text("target_type").$type<ContentType>().notNull(),
+	targetId: text("target_id").notNull(),
+	reason: text("reason"),
+	createdAt: integer("created_at", { mode: "timestamp" })
+		.notNull()
+		.$defaultFn(() => new Date()),
+});
