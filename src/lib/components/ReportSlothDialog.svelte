@@ -9,8 +9,6 @@
 <script lang="ts">
 	import type { LngLatLike } from "maplibre-gl";
 
-	import { dev } from "$app/environment";
-
 	import maplibre from "maplibre-gl";
 	import PhotoGrid from "./ui/PhotoGrid.svelte";
 	import PhotoThumbnail from "./ui/PhotoThumbnail.svelte";
@@ -29,6 +27,7 @@
 	import { Label } from "$lib/components/ui/label";
 	import { Textarea } from "$lib/components/ui/textarea";
 	import * as Alert from "$lib/components/ui/alert";
+	import Turnstile from "./ui/turnstile/turnstile.svelte";
 
 	let {
 		initialLocation,
@@ -116,6 +115,8 @@
 	function handleMapClick(event: CustomEvent<{ lngLat: LngLatLike }>) {
 		location = event.detail.lngLat;
 	}
+
+	let turnstileVerified = $state(false);
 
 	// Reset when dialog opens
 	$effect(() => {
@@ -354,9 +355,15 @@
 							</div>
 						{/if}
 
+						<Turnstile
+							size="flexible"
+							theme="light"
+							oncallback={() => (turnstileVerified = true)}
+						/>
+
 						<Button
 							type="submit"
-							disabled={isSubmitting}
+							disabled={isSubmitting || !turnstileVerified}
 							class="w-full bg-amber-600 hover:bg-amber-700"
 							size="default"
 						>

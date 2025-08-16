@@ -9,6 +9,7 @@ import { fail } from "@sveltejs/kit";
 import { randomUUID } from "crypto";
 import { deleteImage, uploadImage } from "$lib/server/cloudflare-images";
 import { type } from "arktype";
+import { validateTurnstile } from "$lib/utils/turnstile.server";
 
 export const load: PageServerLoad = async ({ locals, platform }) => {
 	const db = connect(platform!.env.DB);
@@ -31,6 +32,7 @@ const FormSchema = type({
 	latitude: "string.numeric.parse",
 	notes: "string < 500",
 	photos: "0 < File[] <= 3",
+	"cf-turnstile-response": "string",
 }).narrow(({ photos }, ctx) => {
 	for (const photo of photos) {
 		if (photo.size > 10 * 1024 * 1024) {
@@ -67,7 +69,21 @@ export const actions: Actions = {
 			formData.photos = [formData.photos];
 		}
 
-		const { latitude, longitude, photos, notes } = FormSchema.assert(formData);
+		const {
+			latitude,
+			longitude,
+			photos,
+			notes,
+			"cf-turnstile-response": turnstileResponse,
+		} = FormSchema.assert(formData);
+
+		if (
+			!(await validateTurnstile(turnstileResponse, request.headers.get("CF-Connecting-IP") || ""))
+		) {
+			return fail(400, {
+				error: "Turnstile validation failed. Please try again.",
+			});
+		}
 
 		// Check for nearby sloths (within 25 meters) TODO: This should display a new step
 		// const nearbySloths = await getSlothsNearLocation(latitude, longitude, 25);
