@@ -3,7 +3,7 @@
 
 	import type { SlothMapData } from "$lib/server/db";
 	import { SlothStatus } from "$lib";
-	import { getImageUrl } from "$lib/utils/image-urls";
+	import { getImageUrl } from "$lib/client/cloudflare/images";
 	import { Button } from "$lib/components/ui/button";
 	import { Badge } from "$lib/components/ui/badge";
 	import * as Avatar from "$lib/components/ui/avatar";

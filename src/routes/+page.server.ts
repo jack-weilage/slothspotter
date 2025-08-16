@@ -7,9 +7,9 @@ import { eq } from "drizzle-orm";
 import { SlothStatus } from "$lib";
 import { fail } from "@sveltejs/kit";
 import { randomUUID } from "crypto";
-import { deleteImage, uploadImage } from "$lib/server/cloudflare-images";
 import { type } from "arktype";
-import { validateTurnstile } from "$lib/utils/turnstile.server";
+import { deleteImage, uploadImage } from "$lib/server/cloudflare/images";
+import { validateTurnstile } from "$lib/server/cloudflare/turnstile";
 
 export const load: PageServerLoad = async ({ locals, platform }) => {
 	const db = connect(platform!.env.DB);
