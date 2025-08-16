@@ -95,16 +95,12 @@ export const actions: Actions = {
 		// 	});
 		// }
 
-		const slothId = randomUUID();
-		const sightingId = randomUUID();
-
 		const db = connect(platform!.env.DB);
 
 		// Create the sloth
 		const [newSloth] = await db
 			.insert(schema.sloth)
 			.values({
-				id: slothId,
 				latitude,
 				longitude,
 				status: SlothStatus.Active,
@@ -121,8 +117,7 @@ export const actions: Actions = {
 		const [newSighting] = await db
 			.insert(schema.sighting)
 			.values({
-				id: sightingId,
-				slothId,
+				slothId: newSloth.id,
 				userId: locals.user.id,
 				sightingType: schema.SightingType.Discovery,
 				notes,
@@ -146,7 +141,7 @@ export const actions: Actions = {
 
 				await db.insert(schema.photo).values({
 					id: photoId,
-					sightingId,
+					sightingId: newSighting.id,
 					cloudflareImageId,
 				});
 			}
@@ -158,8 +153,8 @@ export const actions: Actions = {
 			}
 
 			// Clean up database records (sloth and sighting)
-			await db.delete(schema.sighting).where(eq(schema.sighting.id, sightingId));
-			await db.delete(schema.sloth).where(eq(schema.sloth.id, slothId));
+			await db.delete(schema.sighting).where(eq(schema.sighting.id, newSighting.id));
+			await db.delete(schema.sloth).where(eq(schema.sloth.id, newSloth.id));
 
 			return fail(500, {
 				error:
@@ -171,7 +166,7 @@ export const actions: Actions = {
 
 		return {
 			success: true,
-			slothId,
+			slothId: newSloth.id,
 			message: "Sloth reported successfully!",
 		};
 	},

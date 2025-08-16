@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import { sqliteTable, integer, text, real, primaryKey } from "drizzle-orm/sqlite-core";
 
 /**
@@ -11,7 +12,9 @@ export enum AuthProvider {
  * User authentication and profile data
  */
 export const user = sqliteTable("user", {
-	id: text("id").primaryKey(), // UUID
+	id: text("id")
+		.primaryKey()
+		.$defaultFn(() => randomUUID()),
 	displayName: text("display_name").notNull(),
 	avatarUrl: text("avatar_url"),
 	provider: text("provider").$type<AuthProvider>().notNull(),
@@ -40,7 +43,9 @@ export enum SlothStatus {
  * Each sloth gets exactly ONE record, with multiple sightings linked to it
  */
 export const sloth = sqliteTable("sloth", {
-	id: text("id").primaryKey(), // UUID
+	id: text("id")
+		.primaryKey()
+		.$defaultFn(() => randomUUID()),
 	latitude: real("latitude").notNull(),
 	longitude: real("longitude").notNull(),
 	status: text("status").$type<SlothStatus>().notNull().default(SlothStatus.Active),
@@ -73,7 +78,9 @@ export enum SightingType {
  * Each sighting represents one user's interaction with a specific sloth
  */
 export const sighting = sqliteTable("sighting", {
-	id: text("id").primaryKey(), // UUID
+	id: text("id")
+		.primaryKey()
+		.$defaultFn(() => randomUUID()),
 	slothId: text("sloth_id")
 		.notNull()
 		.references(() => sloth.id),
@@ -95,7 +102,9 @@ export type Sighting = typeof sighting.$inferSelect;
  * Photos are stored via Cloudflare Images API
  */
 export const photo = sqliteTable("photo", {
-	id: text("id").primaryKey(), // UUID
+	id: text("id")
+		.primaryKey()
+		.$defaultFn(() => randomUUID()),
 	sightingId: text("sighting_id")
 		.notNull()
 		.references(() => sighting.id),

@@ -8,7 +8,6 @@ import { google } from "$lib/server/auth/oauth";
 import type { OAuth2Tokens } from "arctic";
 import { decodeIdToken } from "arctic";
 import { error, redirect } from "@sveltejs/kit";
-import { randomUUID } from "crypto";
 
 export const GET: RequestHandler = async function (event) {
 	const code = event.url.searchParams.get("code");
@@ -50,7 +49,6 @@ export const GET: RequestHandler = async function (event) {
 	}
 
 	const user = await createUser(db, {
-		id: randomUUID(),
 		displayName,
 		provider: AuthProvider.Google,
 		providerId: googleUserId,
