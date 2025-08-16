@@ -1,5 +1,5 @@
 import type { RequestEvent } from "@sveltejs/kit";
-import type { Database } from "./db";
+import type { Database } from "$lib/server/db";
 
 import { eq } from "drizzle-orm";
 import { sha256 } from "@oslojs/crypto/sha2";
