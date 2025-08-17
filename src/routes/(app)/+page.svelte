@@ -11,11 +11,11 @@
 	} from "$lib/components/ReportSlothDialog.svelte";
 	import SlothPreviewPopup from "$lib/components/SlothPreviewPopup.svelte";
 	import SEO from "$lib/components/SEO.svelte";
-	import { SlothStatus } from "$lib";
 	import maplibre from "maplibre-gl";
 	import PlusIcon from "@lucide/svelte/icons/plus";
 	import { Button } from "$lib/components/ui/button";
 	import { openLoginDialog } from "$lib/components/LoginDialog.svelte";
+	import { SlothStatus } from "$lib/client/db/schema";
 
 	let { data } = $props();
 

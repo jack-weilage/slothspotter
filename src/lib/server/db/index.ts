@@ -1,51 +1,11 @@
 import { drizzle } from "drizzle-orm/d1";
 import * as schema from "./schema";
 import { and, eq, desc, asc, exists, sql } from "drizzle-orm";
-import { SlothStatus } from "$lib";
 import { SightingType } from "./schema";
+import type { SlothStatus } from "$lib/client/db/schema";
 
 export const connect = (db: D1Database) => drizzle(db, { schema });
 export type Database = ReturnType<typeof connect>;
-
-export async function createUser(
-	db: Database,
-	user: schema.NewUser,
-): Promise<schema.User | undefined> {
-	return (await db.insert(schema.user).values(user).returning()).at(0);
-}
-
-export async function getUserByProviderAndId(
-	db: Database,
-	provider: schema.AuthProvider,
-	providerId: string,
-): Promise<schema.User | undefined> {
-	return db.query.user.findFirst({
-		where: and(eq(schema.user.provider, provider), eq(schema.user.providerId, providerId)),
-	});
-}
-
-// =============================================================================
-// SLOTH OPERATIONS
-// =============================================================================
-
-export async function getSlothsNearLocation(
-	db: Database,
-	latitude: number,
-	longitude: number,
-	radiusMeters: number = 25,
-): Promise<schema.Sloth[]> {
-	// Using Haversine formula for distance calculation (SQLite compatible)
-	return db.query.sloth.findMany({
-		where: sql`(
-			6371000 * 2 * asin(sqrt(
-				(sin((${latitude} - ${schema.sloth.latitude}) * 0.017453292519943295 / 2) * sin((${latitude} - ${schema.sloth.latitude}) * 0.017453292519943295 / 2)) +
-				cos(${latitude} * 0.017453292519943295) * 
-				cos(${schema.sloth.latitude} * 0.017453292519943295) * 
-				(sin((${longitude} - ${schema.sloth.longitude}) * 0.017453292519943295 / 2) * sin((${longitude} - ${schema.sloth.longitude}) * 0.017453292519943295 / 2))
-			))
-		) <= ${radiusMeters}`,
-	});
-}
 
 // =============================================================================
 // SPOT OPERATIONS

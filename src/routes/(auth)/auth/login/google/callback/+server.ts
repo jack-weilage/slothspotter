@@ -1,9 +1,10 @@
 import type { RequestHandler } from "./$types";
 
 import { generateSessionToken, createSession, setSessionTokenCookie } from "$lib/server/auth";
-import { connect, createUser, getUserByProviderAndId } from "$lib/server/db";
+import { connect } from "$lib/server/db";
 import { AuthProvider } from "$lib/server/db/schema";
 import { google } from "$lib/server/auth/oauth";
+import { createUser, getUserByProviderAndId, updateUser } from "$lib/server/db/queries/user";
 
 import type { OAuth2Tokens } from "arctic";
 import { decodeIdToken } from "arctic";
@@ -39,7 +40,7 @@ export const GET: RequestHandler = async function (event) {
 	let tokens: OAuth2Tokens;
 	try {
 		tokens = await google.validateAuthorizationCode(code, codeVerifier);
-	} catch (e) {
+	} catch {
 		// Invalid code or client credentials
 		error(400);
 	}
@@ -55,6 +56,8 @@ export const GET: RequestHandler = async function (event) {
 	const existingUser = await getUserByProviderAndId(db, AuthProvider.Google, googleUserId);
 
 	if (existingUser) {
+		await updateUser(db, existingUser.id, { displayName, avatarUrl });
+
 		const sessionToken = generateSessionToken();
 		const session = await createSession(kv, sessionToken, existingUser.id);
 		setSessionTokenCookie(event, sessionToken, session);

@@ -14,7 +14,6 @@ export interface CloudflareImageUploadResponse {
 }
 
 export interface CloudflareImageDeleteResponse {
-	result: {};
 	success: boolean;
 	errors: Array<{ code: number; message: string }>;
 	messages: string[];
@@ -115,15 +114,12 @@ export async function uploadMultipleImages(
 	files: { id: string; file: File }[],
 	onProgress?: (completed: number, total: number) => void,
 ): Promise<string[]> {
-	const uploadPromises = files.map(async ({ id, file }, index) => {
-		try {
+	return Promise.all(
+		files.map(async ({ id, file }, index) => {
 			const imageId = await uploadImage(file, id, uploaderId);
 			onProgress?.(index + 1, files.length);
-			return imageId;
-		} catch (error) {
-			throw error;
-		}
-	});
 
-	return Promise.all(uploadPromises);
+			return imageId;
+		}),
+	);
 }

@@ -1,10 +1,9 @@
 import type { RequestEvent } from "@sveltejs/kit";
 import type { Database } from "$lib/server/db";
 
-import { eq } from "drizzle-orm";
 import { sha256 } from "@oslojs/crypto/sha2";
 import { encodeBase64url, encodeHexLowerCase } from "@oslojs/encoding";
-import * as schema from "$lib/server/db/schema";
+import { getUserById } from "../db/queries/user";
 
 interface StoredSession {
 	userId: string;
@@ -95,9 +94,7 @@ export async function validateSessionToken(kv: KVNamespace, db: Database, token:
 		await renewSession(kv, session.userId, sessionId);
 	}
 
-	const user = await db.query.user.findFirst({
-		where: eq(schema.user.id, session.userId),
-	});
+	const user = await getUserById(db, session.userId);
 
 	return { session, user };
 }

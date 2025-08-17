@@ -2,7 +2,7 @@
 	import "lquip/css";
 
 	import type { SlothMapData } from "$lib/server/db";
-	import { SlothStatus } from "$lib";
+	import { SlothStatus } from "$lib/client/db/schema";
 	import { getImageUrl } from "$lib/client/cloudflare/images";
 	import { Button } from "$lib/components/ui/button";
 	import { Badge } from "$lib/components/ui/badge";
