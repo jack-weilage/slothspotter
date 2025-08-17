@@ -1,25 +1,59 @@
 import type { PageServerLoad, Actions } from "./$types";
-import type { SlothMapData } from "$lib/server/db";
 
-import { getSlothsForMap, connect } from "$lib/server/db";
+import { connect } from "$lib/server/db";
 import * as schema from "$lib/server/db/schema";
-import { eq } from "drizzle-orm";
-import { SlothStatus } from "$lib";
+import { asc, eq, sql } from "drizzle-orm";
 import { fail } from "@sveltejs/kit";
 import { randomUUID } from "crypto";
-import { deleteImage, uploadImage } from "$lib/server/cloudflare-images";
 import { type } from "arktype";
-import { validateTurnstile } from "$lib/utils/turnstile.server";
+import { deleteImage, uploadImage } from "$lib/server/cloudflare/images";
+import { validateTurnstile } from "$lib/server/cloudflare/turnstile";
+import { SlothStatus } from "$lib/client/db/schema";
 
 export const load: PageServerLoad = async ({ locals, platform }) => {
 	const db = connect(platform!.env.DB);
-	let sloths: SlothMapData[] = [];
 
-	try {
-		sloths = await getSlothsForMap(db);
-	} catch (error) {
-		console.error("Error loading sloths:", error);
-	}
+	const sloths = await db.query.sloth.findMany({
+		columns: {
+			id: true,
+			latitude: true,
+			longitude: true,
+			status: true,
+			discoveredAt: true,
+		},
+		with: {
+			discoveredBy: {
+				columns: {
+					id: true,
+					displayName: true,
+					avatarUrl: true,
+				},
+			},
+			sightings: {
+				limit: 1,
+				columns: {},
+				where: eq(schema.sighting.sightingType, schema.SightingType.Discovery),
+				orderBy: asc(schema.sighting.createdAt),
+				with: {
+					photos: {
+						limit: 1,
+						columns: {
+							id: true,
+							cloudflareImageId: true,
+							lqip: true,
+						},
+					},
+				},
+			},
+		},
+		extras: {
+			totalSpots:
+				sql<number>`(SELECT count(*) FROM "spot" WHERE "spot"."sloth_id" = "sloth"."id")`.as(
+					"totalSpots",
+				),
+		},
+		orderBy: asc(schema.sloth.createdAt),
+	});
 
 	return {
 		sloths,
@@ -85,53 +119,27 @@ export const actions: Actions = {
 			});
 		}
 
-		// Check for nearby sloths (within 25 meters) TODO: This should display a new step
-		// const nearbySloths = await getSlothsNearLocation(latitude, longitude, 25);
-		// if (nearbySloths.length > 0) {
-		// 	return fail(400, {
-		// 		error:
-		// 			"A sloth already exists within 25 meters of this location. Please check existing sloths or move the pin to a different location.",
-		// 		nearbySloths,
-		// 	});
-		// }
+		const db = connect(platform!.env.DB);
 
 		const slothId = randomUUID();
 		const sightingId = randomUUID();
 
-		const db = connect(platform!.env.DB);
-
-		// Create the sloth
-		const [newSloth] = await db
-			.insert(schema.sloth)
-			.values({
+		await db.batch([
+			db.insert(schema.sloth).values({
 				id: slothId,
 				latitude,
 				longitude,
 				status: SlothStatus.Active,
 				discoveredBy: locals.user.id,
-				discoveredAt: new Date(),
-			})
-			.returning();
-
-		if (!newSloth) {
-			return fail(500, { error: "Failed to create sloth" });
-		}
-
-		// Create the discovery sighting
-		const [newSighting] = await db
-			.insert(schema.sighting)
-			.values({
+			}),
+			db.insert(schema.sighting).values({
 				id: sightingId,
-				slothId,
+				slothId: slothId,
 				userId: locals.user.id,
 				sightingType: schema.SightingType.Discovery,
 				notes,
-			})
-			.returning();
-
-		if (!newSighting) {
-			return fail(500, { error: "Failed to create sighting" });
-		}
+			}),
+		]);
 
 		// Upload photos to Cloudflare Images and create photo records
 		const uploadedPhotos: string[] = [];
@@ -146,7 +154,7 @@ export const actions: Actions = {
 
 				await db.insert(schema.photo).values({
 					id: photoId,
-					sightingId,
+					sightingId: sightingId,
 					cloudflareImageId,
 				});
 			}
@@ -158,8 +166,10 @@ export const actions: Actions = {
 			}
 
 			// Clean up database records (sloth and sighting)
-			await db.delete(schema.sighting).where(eq(schema.sighting.id, sightingId));
-			await db.delete(schema.sloth).where(eq(schema.sloth.id, slothId));
+			await db.batch([
+				db.delete(schema.sighting).where(eq(schema.sighting.id, sightingId)),
+				db.delete(schema.sloth).where(eq(schema.sloth.id, slothId)),
+			]);
 
 			return fail(500, {
 				error:
@@ -171,7 +181,6 @@ export const actions: Actions = {
 
 		return {
 			success: true,
-			slothId,
 			message: "Sloth reported successfully!",
 		};
 	},

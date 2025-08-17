@@ -1,9 +1,9 @@
 import { CLOUDFLARE_TURNSTILE_SECRET_KEY } from "$env/static/private";
+import { type } from "arktype";
 
-export interface TurnstileResponse {
-	success: boolean;
-	action?: string; // Action name if specified in the Turnstile widget
-}
+const turnstileReponseSchema = type({
+	success: "boolean",
+});
 
 export async function validateTurnstile(token: string, ip: string): Promise<boolean> {
 	const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
@@ -18,7 +18,7 @@ export async function validateTurnstile(token: string, ip: string): Promise<bool
 		}),
 	});
 
-	const data: TurnstileResponse = await response.json();
+	const data = turnstileReponseSchema.assert(await response.json());
 
 	return data.success;
 }

@@ -3,6 +3,7 @@ import { connect } from "$lib/server/db";
 import * as schema from "$lib/server/db/schema";
 import { ne } from "drizzle-orm";
 import { PUBLIC_ORIGIN } from "$env/static/public";
+import { SlothStatus } from "$lib/client/db/schema";
 
 export const GET: RequestHandler = async ({ platform }) => {
 	const db = connect(platform!.env.DB);
@@ -14,7 +15,7 @@ export const GET: RequestHandler = async ({ platform }) => {
 			discoveredAt: schema.sloth.discoveredAt,
 		})
 		.from(schema.sloth)
-		.where(ne(schema.sloth.status, schema.SlothStatus.Removed));
+		.where(ne(schema.sloth.status, SlothStatus.Removed));
 
 	const staticRoutes = [
 		{

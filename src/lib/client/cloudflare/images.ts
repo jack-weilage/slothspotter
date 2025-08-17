@@ -1,8 +1,3 @@
-/**
- * Client-safe utilities for generating image URLs
- * Handles both File objects and Cloudflare image IDs
- */
-
 import { PUBLIC_CLOUDFLARE_ACCOUNT_HASH } from "$env/static/public";
 
 /**

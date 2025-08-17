@@ -1,10 +1,4 @@
-/**
- * Cloudflare Images API integration
- * Handles image uploads, URL generation, and management
- */
-
 import { CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_IMAGES_TOKEN } from "$env/static/private";
-import { getImageUrl } from "$lib/utils/image-urls";
 
 export interface CloudflareImageUploadResponse {
 	result: {
@@ -20,7 +14,6 @@ export interface CloudflareImageUploadResponse {
 }
 
 export interface CloudflareImageDeleteResponse {
-	result: {};
 	success: boolean;
 	errors: Array<{ code: number; message: string }>;
 	messages: string[];
@@ -121,40 +114,12 @@ export async function uploadMultipleImages(
 	files: { id: string; file: File }[],
 	onProgress?: (completed: number, total: number) => void,
 ): Promise<string[]> {
-	const uploadPromises = files.map(async ({ id, file }, index) => {
-		try {
+	return Promise.all(
+		files.map(async ({ id, file }, index) => {
 			const imageId = await uploadImage(file, id, uploaderId);
 			onProgress?.(index + 1, files.length);
+
 			return imageId;
-		} catch (error) {
-			throw error;
-		}
-	});
-
-	return Promise.all(uploadPromises);
-}
-
-/**
- * Check if an image ID is valid (not a placeholder)
- */
-export function isValidImageId(imageId: string): boolean {
-	return Boolean(imageId && !imageId.startsWith("placeholder_"));
-}
-
-/**
- * Get the appropriate image URL, handling both File objects and Cloudflare image IDs
- */
-export function getDisplayUrl(source: File | string, variant: string = "thumbnail"): string {
-	if (source instanceof File) {
-		// For File objects, create a temporary object URL
-		return URL.createObjectURL(source);
-	}
-
-	// For Cloudflare image IDs
-	if (isValidImageId(source)) {
-		return getImageUrl(source, variant);
-	}
-
-	// Fallback for invalid/placeholder IDs
-	return "";
+		}),
+	);
 }

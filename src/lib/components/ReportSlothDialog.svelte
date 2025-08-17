@@ -34,7 +34,6 @@
 		onClose,
 		onSubmitSuccess,
 	}: {
-		open?: boolean;
 		initialLocation?: LngLatLike;
 		onClose?: () => void;
 		onSubmitSuccess?: () => void;
