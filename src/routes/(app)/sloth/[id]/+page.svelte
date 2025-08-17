@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PageData } from "./$types";
-	import { SlothStatus } from "$lib";
+	import { SlothStatus } from "$lib/client/db/schema";
 	import SEO from "$lib/components/SEO.svelte";
 	import { Button } from "$lib/components/ui/button";
 	import { Badge } from "$lib/components/ui/badge";

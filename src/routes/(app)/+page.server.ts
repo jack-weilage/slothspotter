@@ -1,9 +1,8 @@
 import type { PageServerLoad, Actions } from "./$types";
-import type { SlothMapData } from "$lib/server/db";
 
-import { getSlothsForMap, connect } from "$lib/server/db";
+import { connect } from "$lib/server/db";
 import * as schema from "$lib/server/db/schema";
-import { asc, eq } from "drizzle-orm";
+import { asc, eq, sql } from "drizzle-orm";
 import { fail } from "@sveltejs/kit";
 import { randomUUID } from "crypto";
 import { type } from "arktype";
@@ -46,6 +45,12 @@ export const load: PageServerLoad = async ({ locals, platform }) => {
 					},
 				},
 			},
+		},
+		extras: {
+			totalSpots:
+				sql<number>`(SELECT count(*) FROM "spot" WHERE "spot"."sloth_id" = "sloth"."id")`.as(
+					"totalSpots",
+				),
 		},
 		orderBy: asc(schema.sloth.createdAt),
 	});
@@ -116,36 +121,25 @@ export const actions: Actions = {
 
 		const db = connect(platform!.env.DB);
 
-		// Create the sloth
-		const [newSloth] = await db
-			.insert(schema.sloth)
-			.values({
+		const slothId = randomUUID();
+		const sightingId = randomUUID();
+
+		await db.batch([
+			db.insert(schema.sloth).values({
+				id: slothId,
 				latitude,
 				longitude,
 				status: SlothStatus.Active,
 				discoveredBy: locals.user.id,
-				discoveredAt: new Date(),
-			})
-			.returning();
-
-		if (!newSloth) {
-			return fail(500, { error: "Failed to create sloth" });
-		}
-
-		// Create the discovery sighting
-		const [newSighting] = await db
-			.insert(schema.sighting)
-			.values({
-				slothId: newSloth.id,
+			}),
+			db.insert(schema.sighting).values({
+				id: sightingId,
+				slothId: slothId,
 				userId: locals.user.id,
 				sightingType: schema.SightingType.Discovery,
 				notes,
-			})
-			.returning();
-
-		if (!newSighting) {
-			return fail(500, { error: "Failed to create sighting" });
-		}
+			}),
+		]);
 
 		// Upload photos to Cloudflare Images and create photo records
 		const uploadedPhotos: string[] = [];
@@ -160,7 +154,7 @@ export const actions: Actions = {
 
 				await db.insert(schema.photo).values({
 					id: photoId,
-					sightingId: newSighting.id,
+					sightingId: sightingId,
 					cloudflareImageId,
 				});
 			}
@@ -172,8 +166,10 @@ export const actions: Actions = {
 			}
 
 			// Clean up database records (sloth and sighting)
-			await db.delete(schema.sighting).where(eq(schema.sighting.id, newSighting.id));
-			await db.delete(schema.sloth).where(eq(schema.sloth.id, newSloth.id));
+			await db.batch([
+				db.delete(schema.sighting).where(eq(schema.sighting.id, sightingId)),
+				db.delete(schema.sloth).where(eq(schema.sloth.id, slothId)),
+			]);
 
 			return fail(500, {
 				error:
@@ -185,7 +181,6 @@ export const actions: Actions = {
 
 		return {
 			success: true,
-			slothId: newSloth.id,
 			message: "Sloth reported successfully!",
 		};
 	},

@@ -53,7 +53,9 @@ export const sloth = sqliteTable("sloth", {
 	discoveredBy: text("discovered_by")
 		.notNull()
 		.references(() => user.id),
-	discoveredAt: integer("discovered_at", { mode: "timestamp" }).notNull(),
+	discoveredAt: integer("discovered_at", { mode: "timestamp" })
+		.notNull()
+		.$defaultFn(() => new Date()),
 	createdAt: integer("created_at", { mode: "timestamp" })
 		.notNull()
 		.$defaultFn(() => new Date()),
