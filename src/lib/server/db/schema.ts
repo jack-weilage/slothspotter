@@ -1,6 +1,6 @@
 import { SlothStatus } from "../../client/db/schema";
 import { randomUUID } from "crypto";
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import { sqliteTable, integer, text, real, primaryKey } from "drizzle-orm/sqlite-core";
 
 /**
@@ -8,6 +8,15 @@ import { sqliteTable, integer, text, real, primaryKey } from "drizzle-orm/sqlite
  */
 export enum AuthProvider {
 	Google = "google",
+}
+
+/**
+ * User roles within the application
+ */
+export enum UserRole {
+	Admin = "admin", // Full access to all features
+	Moderator = "moderator", // Can manage sloths and sightings, but not users
+	User = "user",
 }
 
 /**
@@ -19,15 +28,20 @@ export const user = sqliteTable("user", {
 		.$defaultFn(() => randomUUID()),
 	displayName: text("display_name").notNull(),
 	avatarUrl: text("avatar_url"),
-	provider: text("provider").$type<AuthProvider>().notNull(),
+	role: text("role", { enum: Object.values(UserRole) as [string, ...string[]] })
+		.notNull()
+		.default(UserRole.User),
+	provider: text("provider", { enum: Object.values(AuthProvider) as [string, ...string[]] })
+		.notNull()
+		.$type<AuthProvider>(),
 	providerId: text("provider_id").notNull(),
 	bannedUntil: integer("banned_until", { mode: "timestamp" }),
 	createdAt: integer("created_at", { mode: "timestamp" })
 		.notNull()
-		.$defaultFn(() => new Date()),
+		.default(sql`CURRENT_TIMESTAMP`),
 	updatedAt: integer("updated_at", { mode: "timestamp" })
 		.notNull()
-		.$defaultFn(() => new Date()),
+		.default(sql`CURRENT_TIMESTAMP`),
 });
 
 export const userRelations = relations(user, ({ many }) => ({
@@ -49,19 +63,21 @@ export const sloth = sqliteTable("sloth", {
 		.$defaultFn(() => randomUUID()),
 	latitude: real("latitude").notNull(),
 	longitude: real("longitude").notNull(),
-	status: text("status").$type<SlothStatus>().notNull().default(SlothStatus.Active),
+	status: text("status", { enum: Object.values(SlothStatus) as [string, ...string[]] })
+		.notNull()
+		.default(SlothStatus.Active),
 	discoveredBy: text("discovered_by")
 		.notNull()
-		.references(() => user.id),
+		.references(() => user.id, { onDelete: "cascade" }),
 	discoveredAt: integer("discovered_at", { mode: "timestamp" })
 		.notNull()
-		.$defaultFn(() => new Date()),
+		.default(sql`CURRENT_TIMESTAMP`),
 	createdAt: integer("created_at", { mode: "timestamp" })
 		.notNull()
-		.$defaultFn(() => new Date()),
+		.default(sql`CURRENT_TIMESTAMP`),
 	updatedAt: integer("updated_at", { mode: "timestamp" })
 		.notNull()
-		.$defaultFn(() => new Date()),
+		.default(sql`CURRENT_TIMESTAMP`),
 });
 
 export const slothRelations = relations(sloth, ({ one, many }) => ({
@@ -95,15 +111,19 @@ export const sighting = sqliteTable("sighting", {
 		.$defaultFn(() => randomUUID()),
 	slothId: text("sloth_id")
 		.notNull()
-		.references(() => sloth.id),
+		.references(() => sloth.id, { onDelete: "cascade" }),
 	userId: text("user_id")
 		.notNull()
-		.references(() => user.id),
-	sightingType: text("sighting_type").$type<SightingType>().notNull(),
+		.references(() => user.id, { onDelete: "cascade" }),
+	sightingType: text("sighting_type", {
+		enum: Object.values(SightingType) as [string, ...string[]],
+	})
+		.notNull()
+		.$type<SightingType>(),
 	notes: text("notes"), // Optional description or comments
 	createdAt: integer("created_at", { mode: "timestamp" })
 		.notNull()
-		.$defaultFn(() => new Date()),
+		.default(sql`CURRENT_TIMESTAMP`),
 });
 
 export const sightingRelations = relations(sighting, ({ many, one }) => ({
@@ -131,13 +151,13 @@ export const photo = sqliteTable("photo", {
 		.$defaultFn(() => randomUUID()),
 	sightingId: text("sighting_id")
 		.notNull()
-		.references(() => sighting.id),
+		.references(() => sighting.id, { onDelete: "cascade" }),
 	lqip: integer("lqip"), // Optional low-quality image placeholder
 	cloudflareImageId: text("cloudflare_image_id").notNull(), // Cloudflare Images ID
 	caption: text("caption"),
 	createdAt: integer("created_at", { mode: "timestamp" })
 		.notNull()
-		.$defaultFn(() => new Date()),
+		.default(sql`CURRENT_TIMESTAMP`),
 });
 
 export const photoRelations = relations(photo, ({ one }) => ({
@@ -160,13 +180,13 @@ export const spot = sqliteTable(
 	{
 		slothId: text("sloth_id")
 			.notNull()
-			.references(() => sloth.id),
+			.references(() => sloth.id, { onDelete: "cascade" }),
 		userId: text("user_id")
 			.notNull()
-			.references(() => user.id),
+			.references(() => user.id, { onDelete: "cascade" }),
 		spottedAt: integer("spotted_at", { mode: "timestamp" })
 			.notNull()
-			.$defaultFn(() => new Date()),
+			.default(sql`CURRENT_TIMESTAMP`),
 	},
 	(table) => ({
 		pk: primaryKey({ columns: [table.slothId, table.userId] }),
@@ -186,3 +206,93 @@ export const spotRelations = relations(spot, ({ one }) => ({
 
 export type NewSpot = typeof spot.$inferInsert;
 export type Spot = typeof spot.$inferSelect;
+
+export enum ContentType {
+	Sloth = "sloth",
+	Sighting = "sighting",
+	Photo = "photo",
+}
+
+export enum ModerationReportStatus {
+	Open = "open",
+	Resolved = "resolved",
+}
+
+export const moderationReport = sqliteTable("moderation_report", {
+	id: text("id")
+		.primaryKey()
+		.$defaultFn(() => randomUUID()),
+	contentId: text("content_id").notNull(),
+	contentType: text("content_type", { enum: Object.values(ContentType) as [string, ...string[]] })
+		.notNull()
+		.$type<ContentType>(),
+	reportedBy: text("reported_by")
+		.notNull()
+		.references(() => user.id, { onDelete: "cascade" }),
+	reason: text("reason").notNull(),
+	comment: text("comment"),
+	status: text("status", { enum: Object.values(ModerationReportStatus) as [string, ...string[]] })
+		.notNull()
+		.default(ModerationReportStatus.Open),
+	createdAt: integer("created_at", { mode: "timestamp" })
+		.notNull()
+		.default(sql`CURRENT_TIMESTAMP`),
+	updatedAt: integer("updated_at", { mode: "timestamp" })
+		.notNull()
+		.default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const moderationReportRelations = relations(moderationReport, ({ one }) => ({
+	// TODO: Polymorphic relations for contentId based on contentType
+	reportedBy: one(user, {
+		fields: [moderationReport.reportedBy],
+		references: [user.id],
+	}),
+}));
+
+export type NewModerationReport = typeof moderationReport.$inferInsert;
+export type ModerationReport = typeof moderationReport.$inferSelect;
+
+export enum ModerationActionType {
+	RemoveContent = "remove_content",
+	RestoreContent = "restore_content",
+	WarnUser = "warn_user",
+	BanUser = "ban_user",
+	UnbanUser = "unban_user",
+	MergeContent = "merge_content",
+}
+
+export const moderationAction = sqliteTable("moderation_action", {
+	id: text("id")
+		.primaryKey()
+		.$defaultFn(() => randomUUID()),
+	reportId: text("report_id")
+		.notNull()
+		.references(() => moderationReport.id, { onDelete: "cascade" }),
+	actionedBy: text("actioned_by")
+		.notNull()
+		.references(() => user.id, { onDelete: "cascade" }),
+	actionType: text("action_type", {
+		enum: Object.values(ModerationActionType) as [string, ...string[]],
+	})
+		.notNull()
+		.$type<ModerationActionType>(),
+	comment: text("comment"),
+	createdAt: integer("created_at", { mode: "timestamp" })
+		.notNull()
+		.default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const moderationActionRelations = relations(moderationAction, ({ one }) => ({
+	report: one(moderationReport, {
+		fields: [moderationAction.reportId],
+		references: [moderationReport.id],
+	}),
+	actionedBy: one(user, {
+		fields: [moderationAction.actionedBy],
+		references: [user.id],
+	}),
+}));
+
+export type NewModerationAction = typeof moderationAction.$inferInsert;
+export type ModerationAction = typeof moderationAction.$inferSelect;
