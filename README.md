@@ -1,21 +1,28 @@
 # `slothspotter.com`
 
-This repository is the source code for `slothspotter.com`, a website built to allow residents of
-Bellingham, Washington to track and report the many stuffed sloths appearing around the city.
+SlothSpotter is a **free, open-source, and community-driven** platform for tracking and reporting
+stuffed sloths all around Bellingham.
 
 ## Features
 
-- Simple OAuth2 login collects the minimum information needed (Display name, avatar, provider ID)
-- Leaflet map allows users to discover new sightings
-- Cloudflare Images allows users to upload images of their sightings for everyone to see
+**OAuth2 login** - Anybody (with an applicable social account) can login without making a new
+account, while still providing only minimal information. We collect a user ID, a name, an avatar,
+and nothing else!
 
-## Dependencies
+**Image attachments** - Upload and view photos attached to sightings for a more engaging experience.
 
-- SvelteKit + Svelte 5
-- TailwindCSS
-- mapLibre
-- Lucia Auth
+**Safety and moderation** - Users can report user-submitted content to help keep SlothSpotter fun,
+safe, and welcoming for everyone.
 
-- Cloudflare Pages
-- Cloudflare R1
-- Cloudflare Images
+## Deployment
+
+### Tech Stack
+
+- [SvelteKit](https://svelte.dev) is used for the API and webpages.
+- [MapLibre](https://maplibre.org/) and [Carto](https://carto.com) are used for mapping
+  functionality.
+- [Cloudflare Workers](https://workers.cloudflare.com/) hosts the website and KV store
+- [Cloudflare D1](https://developers.cloudflare.com/d1/) is used as the main database, storing user,
+  sloth, and sighting data in a fast, reliable SQL database.
+- [Cloudflare Images](https://developers.cloudflare.com/images/) is used to store and serve
+  user-uploaded images, providing a scalable and efficient solution for media management.
