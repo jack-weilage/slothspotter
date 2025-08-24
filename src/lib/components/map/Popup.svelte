@@ -1,50 +1,77 @@
 <script lang="ts">
-	import maplibre from "maplibre-gl";
-	import { getContext, onMount, type Snippet } from "svelte";
 	import type { MarkerState } from "./Marker.svelte";
+	import { resetEventListener } from "./utils";
+	import maplibre from "maplibre-gl";
+	import type { Snippet } from "svelte";
+	import { getContext, untrack } from "svelte";
+
+	interface Props extends maplibre.PopupOptions {
+		// Binds
+		popup?: maplibre.Popup;
+		// Events
+		// https://maplibre.org/maplibre-gl-js/docs/API/classes/Popup/#events
+		onopen?: maplibre.Listener;
+		onclose?: maplibre.Listener;
+		// Popup content
+		children?: Snippet;
+	}
 
 	let {
-		open = $bindable(false),
-		options = {},
-		onClose,
-		onOpen,
+		popup = $bindable(),
+		// Dynamically settable props
+		offset,
+		maxWidth,
+		subpixelPositioning,
+
+		onopen,
+		onclose,
+
 		children,
-	}: {
-		open?: boolean;
-		options?: maplibre.PopupOptions;
-		onClose?: () => void;
-		onOpen?: () => void;
-		children?: Snippet;
-	} = $props();
+
+		// Non-dynamic props
+		...restProps
+	}: Props = $props();
 
 	const markerState = getContext<MarkerState>(maplibre.Marker);
 
-	let popup: maplibre.Popup | undefined = $state();
 	let container: HTMLDivElement = $state()!;
 
-	onMount(() => {
+	$effect(() => {
+		const dynamicProps = untrack(() => ({
+			offset,
+			maxWidth,
+			subpixelPositioning,
+		}));
+
 		// Create popup with the slot content
-		popup = new maplibre.Popup(options).setDOMContent(container);
+		popup = new maplibre.Popup({ ...dynamicProps, ...restProps }).setDOMContent(container);
 
-		markerState.marker.setPopup(popup);
-
-		// Handle popup events
-		popup.on("open", () => {
-			open = true;
-			onOpen?.();
-		});
-
-		popup.on("close", () => {
-			open = false;
-			onClose?.();
-		});
+		// TODO: add to map if no marker available
+		markerState.marker.setPopup(untrack(() => popup));
 
 		return () => {
-			if (open) {
-				popup?.remove();
-				popup = undefined;
-			}
+			popup?.remove();
+			popup = undefined!;
 		};
+	});
+
+	$effect(() => resetEventListener(popup, "open", onopen));
+	$effect(() => resetEventListener(popup, "close", onclose));
+
+	$effect(() => {
+		popup?.setOffset(offset);
+	});
+
+	$effect(() => {
+		if (maxWidth === undefined) return;
+
+		popup?.setMaxWidth(maxWidth);
+	});
+
+	$effect(() => {
+		if (subpixelPositioning === undefined) return;
+
+		popup?.setSubpixelPositioning(subpixelPositioning);
 	});
 </script>
 
@@ -52,3 +79,9 @@
 <div bind:this={container} class="contents">
 	{@render children?.()}
 </div>
+
+<style>
+	:global(.maplibregl-popup-content) {
+		display: contents;
+	}
+</style>

@@ -6,47 +6,144 @@
 
 <script lang="ts">
 	import type { MapState } from "./Map.svelte";
-	import type { Snippet } from "svelte";
-
+	import { resetEventListener } from "./utils";
 	import maplibre from "maplibre-gl";
-	import { getContext, setContext, onMount } from "svelte";
+	import type { Snippet } from "svelte";
+	import { getContext, setContext, untrack } from "svelte";
+
+	interface Props extends maplibre.MarkerOptions {
+		// Binds
+		marker?: maplibre.Marker;
+		lngLat: maplibre.LngLatLike;
+		// Events
+		// https://maplibre.org/maplibre-gl-js/docs/API/classes/Marker/#events
+		ondrag?: maplibre.Listener;
+		ondragstart?: maplibre.Listener;
+		ondragend?: maplibre.Listener;
+
+		children?: Snippet;
+	}
 
 	const mapState = getContext<MapState>(maplibre.Map);
 	let {
-		lngLat,
-		options,
+		marker = $bindable(),
+		lngLat = $bindable(),
+		// Dynamically settable props
+		offset,
+		draggable,
+		rotation,
+		rotationAlignment,
+		pitchAlignment,
+		opacity,
+		opacityWhenCovered,
+		subpixelPositioning,
+
+		ondragstart,
+		ondrag,
 		ondragend,
+
 		children,
-	}: {
-		lngLat: maplibre.LngLatLike;
-		options?: maplibre.MarkerOptions;
-		ondragend?: (event: CustomEvent<{ lngLat: maplibre.LngLatLike }>) => void;
-		children?: Snippet;
-	} = $props();
+
+		// Non-dynamic props
+		...restProps
+	}: Props = $props();
 
 	let markerState: MarkerState = $state({ marker: undefined! });
 	setContext<MarkerState>(maplibre.Marker, markerState);
-
-	onMount(() => {
-		markerState.marker = new maplibre.Marker(options).setLngLat(lngLat).addTo(mapState.map);
-
-		// Add dragend event listener if ondragend is provided
-		if (ondragend && options?.draggable) {
-			markerState.marker.on("dragend", () => {
-				const customEvent = new CustomEvent("dragend", {
-					detail: { lngLat: markerState.marker.getLngLat() },
-				}) as CustomEvent<{ lngLat: maplibre.LngLatLike }>;
-				ondragend(customEvent);
-			});
-		}
-
-		return () => {
-			markerState.marker.remove();
-		};
+	$effect(() => {
+		markerState.marker = marker!;
 	});
 
 	$effect(() => {
-		markerState.marker?.setLngLat(lngLat);
+		const dynamicProps = untrack(() => ({
+			offset,
+			draggable,
+			rotation,
+			rotationAlignment,
+			pitchAlignment,
+			opacity,
+			opacityWhenCovered,
+			subpixelPositioning,
+		}));
+
+		marker = new maplibre.Marker({ ...dynamicProps, ...restProps })
+			.setLngLat(untrack(() => lngLat))
+			.addTo(mapState.map);
+
+		const dragListener = untrack(() => () => {
+			if (!marker) return;
+
+			lngLat = marker.getLngLat();
+		});
+
+		untrack(() => marker?.on("drag", dragListener));
+
+		return () => {
+			marker?.off("drag", dragListener);
+
+			marker?.remove();
+			marker = undefined!;
+		};
+	});
+
+	$effect(() => resetEventListener(marker, "dragstart", ondragstart));
+	$effect(() => resetEventListener(marker, "drag", ondrag));
+	$effect(() => resetEventListener(marker, "dragend", ondragend));
+
+	$effect(() => {
+		marker?.setLngLat(lngLat);
+	});
+
+	$effect(() => {
+		// className
+	});
+
+	$effect(() => {
+		if (offset === undefined) return;
+
+		marker?.setOffset(offset);
+	});
+
+	$effect(() => {
+		// anchor
+	});
+
+	$effect(() => {
+		// color
+	});
+
+	$effect(() => {
+		// scale
+	});
+
+	$effect(() => {
+		marker?.setDraggable(draggable);
+	});
+
+	$effect(() => {
+		// clickTolerance
+	});
+
+	$effect(() => {
+		marker?.setRotation(rotation);
+	});
+
+	$effect(() => {
+		marker?.setRotationAlignment(rotationAlignment);
+	});
+
+	$effect(() => {
+		marker?.setPitchAlignment(pitchAlignment);
+	});
+
+	$effect(() => {
+		marker?.setOpacity(opacity, opacityWhenCovered);
+	});
+
+	$effect(() => {
+		if (subpixelPositioning === undefined) return;
+
+		marker?.setSubpixelPositioning(subpixelPositioning);
 	});
 </script>
 

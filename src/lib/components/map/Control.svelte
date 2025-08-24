@@ -1,7 +1,8 @@
 <script lang="ts">
-	import maplibre from "maplibre-gl";
-	import { getContext, onMount, type Snippet } from "svelte";
 	import type { MapState } from "./Map.svelte";
+	import maplibre from "maplibre-gl";
+	import type { Snippet } from "svelte";
+	import { getContext } from "svelte";
 
 	class SvelteControl implements maplibre.IControl {
 		onAdd() {
@@ -12,19 +13,25 @@
 	}
 
 	let {
+		control = $bindable(new SvelteControl()),
+
 		position = "top-right",
-		control = new SvelteControl(),
+
 		children,
 	}: {
-		position?: "top-left" | "top-right" | "bottom-left" | "bottom-right";
+		// Binds
 		control?: maplibre.IControl;
+
+		position?: "top-left" | "top-right" | "bottom-left" | "bottom-right";
+
+		// Control content
 		children?: Snippet;
 	} = $props();
 
 	const mapState = getContext<MapState>(maplibre.Map);
 	let container: HTMLDivElement;
 
-	onMount(() => {
+	$effect(() => {
 		mapState.map.addControl(control, position);
 
 		return () => {
@@ -36,13 +43,3 @@
 <div bind:this={container} class="contents">
 	{@render children?.()}
 </div>
-
-<style>
-	/* Hide default styling */
-	:global(.maplibregl-popup-content) {
-		display: contents;
-	}
-	:global(.maplibregl-popup-close-button) {
-		display: none;
-	}
-</style>

@@ -5,41 +5,78 @@
 </script>
 
 <script lang="ts">
-	import "maplibre-gl/dist/maplibre-gl.css";
-
 	import maplibre from "maplibre-gl";
-	import { onMount, setContext, type Snippet } from "svelte";
+	import "maplibre-gl/dist/maplibre-gl.css";
+	import { onMount, setContext, untrack, type Snippet } from "svelte";
+
+	interface Props extends Omit<maplibre.MapOptions, "container"> {
+		// Binds
+		map?: maplibre.Map;
+		// Events
+
+		children?: Snippet;
+	}
 
 	let mapContainer: HTMLDivElement;
 
+	let {
+		map = $bindable(),
+		// Dynamically settable props
+		maxBounds,
+		minZoom,
+		maxZoom,
+		minPitch,
+		maxPitch,
+		// TODO: Add more dynamic props
+
+		children,
+		// Non-dynamic props
+		...restProps
+	}: Props = $props();
+
 	let mapState: MapState = $state({ map: undefined! });
 	setContext(maplibre.Map, mapState);
-
-	let {
-		options,
-		onclick,
-		children,
-	}: {
-		options: Omit<maplibre.MapOptions, "container">;
-		onclick?: (event: CustomEvent<{ lngLat: maplibre.LngLatLike }>) => void;
-		children?: Snippet;
-	} = $props();
+	$effect(() => {
+		mapState.map = map!;
+	});
 
 	onMount(() => {
-		mapState.map = new maplibre.Map({
-			...options,
+		const dynamicProps = untrack(() => ({
+			maxBounds,
+			minZoom,
+			maxZoom,
+		}));
+
+		map = new maplibre.Map({
+			...dynamicProps,
+			...restProps,
 			container: mapContainer,
 		});
 
-		// Add click event listener if onclick is provided
-		if (onclick) {
-			mapState.map.on("click", (e) => {
-				const customEvent = new CustomEvent("click", {
-					detail: { lngLat: e.lngLat },
-				}) as CustomEvent<{ lngLat: maplibre.LngLatLike }>;
-				onclick(customEvent);
-			});
-		}
+		return () => {
+			map?.remove();
+			map = undefined!;
+		};
+	});
+
+	$effect(() => {
+		map?.setMaxBounds(maxBounds);
+	});
+
+	$effect(() => {
+		map?.setMinZoom(minZoom);
+	});
+
+	$effect(() => {
+		map?.setMaxZoom(maxZoom);
+	});
+
+	$effect(() => {
+		map?.setMinPitch(minPitch);
+	});
+
+	$effect(() => {
+		map?.setMinPitch(maxPitch);
 	});
 </script>
 
