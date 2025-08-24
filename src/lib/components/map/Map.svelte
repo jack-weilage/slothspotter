@@ -7,7 +7,8 @@
 <script lang="ts">
 	import maplibre from "maplibre-gl";
 	import "maplibre-gl/dist/maplibre-gl.css";
-	import { onMount, setContext, untrack, type Snippet } from "svelte";
+	import type { Snippet } from "svelte";
+	import { setContext, untrack } from "svelte";
 
 	interface Props extends Omit<maplibre.MapOptions, "container"> {
 		// Binds
@@ -40,11 +41,13 @@
 		mapState.map = map!;
 	});
 
-	onMount(() => {
+	$effect(() => {
 		const dynamicProps = untrack(() => ({
 			maxBounds,
 			minZoom,
 			maxZoom,
+			minPitch,
+			maxPitch,
 		}));
 
 		map = new maplibre.Map({
