@@ -5,6 +5,7 @@
 </script>
 
 <script lang="ts">
+	import { resetEventListener } from "./utils";
 	import maplibre from "maplibre-gl";
 	import "maplibre-gl/dist/maplibre-gl.css";
 	import type { Snippet } from "svelte";
@@ -14,6 +15,7 @@
 		// Binds
 		map?: maplibre.Map;
 		// Events
+		onclick?: maplibre.Listener;
 
 		children?: Snippet;
 	}
@@ -28,7 +30,10 @@
 		maxZoom,
 		minPitch,
 		maxPitch,
+		center,
 		// TODO: Add more dynamic props
+
+		onclick,
 
 		children,
 		// Non-dynamic props
@@ -48,6 +53,7 @@
 			maxZoom,
 			minPitch,
 			maxPitch,
+			center,
 		}));
 
 		map = new maplibre.Map({
@@ -61,6 +67,8 @@
 			map = undefined!;
 		};
 	});
+
+	$effect(() => resetEventListener(map, "click", onclick));
 
 	$effect(() => {
 		map?.setMaxBounds(maxBounds);
@@ -80,6 +88,12 @@
 
 	$effect(() => {
 		map?.setMinPitch(maxPitch);
+	});
+
+	$effect(() => {
+		if (!center) return;
+
+		map?.setCenter(center);
 	});
 </script>
 
