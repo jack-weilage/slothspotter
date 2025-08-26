@@ -7,27 +7,26 @@
 </script>
 
 <script lang="ts">
-	import type { LngLatLike } from "maplibre-gl";
-
-	import maplibre from "maplibre-gl";
-	import PhotoGrid from "./ui/PhotoGrid.svelte";
-	import PhotoThumbnail from "./ui/PhotoThumbnail.svelte";
+	import { enhance } from "$app/forms";
+	import * as Alert from "$lib/components/ui/alert";
+	import { Button } from "$lib/components/ui/button";
+	import * as Dialog from "$lib/components/ui/dialog";
+	import { Label } from "$lib/components/ui/label";
+	import { Progress } from "$lib/components/ui/progress";
+	import { Textarea } from "$lib/components/ui/textarea";
+	import Control from "./map/Control.svelte";
 	import Map from "./map/Map.svelte";
 	import Marker from "./map/Marker.svelte";
-	import { enhance } from "$app/forms";
+	import PhotoGrid from "./ui/PhotoGrid.svelte";
+	import PhotoThumbnail from "./ui/PhotoThumbnail.svelte";
+	import Turnstile from "./ui/turnstile/turnstile.svelte";
+	import AlertCircleIcon from "@lucide/svelte/icons/alert-circle";
+	import CheckIcon from "@lucide/svelte/icons/check";
 	import ChevronLeftIcon from "@lucide/svelte/icons/chevron-left";
 	import ChevronRightIcon from "@lucide/svelte/icons/chevron-right";
-	import CheckIcon from "@lucide/svelte/icons/check";
 	import LoaderIcon from "@lucide/svelte/icons/loader-2";
-	import AlertCircleIcon from "@lucide/svelte/icons/alert-circle";
-	import Control from "./map/Control.svelte";
-	import * as Dialog from "$lib/components/ui/dialog";
-	import { Button } from "$lib/components/ui/button";
-	import { Progress } from "$lib/components/ui/progress";
-	import { Label } from "$lib/components/ui/label";
-	import { Textarea } from "$lib/components/ui/textarea";
-	import * as Alert from "$lib/components/ui/alert";
-	import Turnstile from "./ui/turnstile/turnstile.svelte";
+	import type { LngLatLike } from "maplibre-gl";
+	import maplibre from "maplibre-gl";
 
 	let {
 		initialLocation,
@@ -111,8 +110,8 @@
 		}
 	}
 
-	function handleMapClick(event: CustomEvent<{ lngLat: LngLatLike }>) {
-		location = event.detail.lngLat;
+	function handleMapClick(event: maplibre.MapMouseEvent) {
+		location = event.lngLat;
 	}
 
 	let turnstileVerified = $state(false);
@@ -218,11 +217,9 @@
 						</p>
 						<div class="h-48 overflow-hidden rounded-lg border border-gray-300">
 							<Map
-								options={{
-									style: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
-									center: location,
-									zoom: 16,
-								}}
+								style="https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json"
+								center={location}
+								zoom={16}
 								onclick={handleMapClick}
 							>
 								<Control

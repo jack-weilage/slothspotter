@@ -1,8 +1,8 @@
 <script lang="ts">
-	import LoginDialog, { openLoginDialog } from "$lib/components/LoginDialog.svelte";
 	import { enhance } from "$app/forms";
-	import { Button } from "$lib/components/ui/button";
+	import LoginDialog, { openLoginDialog } from "$lib/components/LoginDialog.svelte";
 	import * as Avatar from "$lib/components/ui/avatar";
+	import { Button } from "$lib/components/ui/button";
 
 	let { children, data } = $props();
 </script>

@@ -1,7 +1,7 @@
 <script lang="ts">
-	import XIcon from "@lucide/svelte/icons/x";
 	import { getDisplayUrl } from "$lib/client/cloudflare/images";
 	import { Button } from "$lib/components/ui/button";
+	import XIcon from "@lucide/svelte/icons/x";
 
 	let {
 		src,

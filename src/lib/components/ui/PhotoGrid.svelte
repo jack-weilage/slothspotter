@@ -1,7 +1,7 @@
 <script lang="ts">
+	import { Button } from "$lib/components/ui/button";
 	import PhotoThumbnail from "./PhotoThumbnail.svelte";
 	import CameraIcon from "@lucide/svelte/icons/camera";
-	import { Button } from "$lib/components/ui/button";
 
 	let {
 		photos = $bindable([]),

@@ -1,9 +1,9 @@
-import type { RequestHandler } from "./$types";
-import { connect } from "$lib/server/db";
-import * as schema from "$lib/server/db/schema";
-import { ne } from "drizzle-orm";
 import { PUBLIC_ORIGIN } from "$env/static/public";
 import { SlothStatus } from "$lib/client/db/schema";
+import { connect } from "$lib/server/db";
+import * as schema from "$lib/server/db/schema";
+import type { RequestHandler } from "./$types";
+import { ne } from "drizzle-orm";
 
 export const GET: RequestHandler = async ({ platform }) => {
 	const db = connect(platform!.env.DB);

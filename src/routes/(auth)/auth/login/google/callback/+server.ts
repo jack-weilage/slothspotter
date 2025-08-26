@@ -1,14 +1,12 @@
-import type { RequestHandler } from "./$types";
-
 import { generateSessionToken, createSession, setSessionTokenCookie } from "$lib/server/auth";
-import { connect } from "$lib/server/db";
-import { AuthProvider } from "$lib/server/db/schema";
 import { google } from "$lib/server/auth/oauth";
+import { connect } from "$lib/server/db";
 import { createUser, getUserByProviderAndId, updateUser } from "$lib/server/db/queries/user";
-
+import { AuthProvider } from "$lib/server/db/schema";
+import type { RequestHandler } from "./$types";
+import { error, redirect } from "@sveltejs/kit";
 import type { OAuth2Tokens } from "arctic";
 import { decodeIdToken } from "arctic";
-import { error, redirect } from "@sveltejs/kit";
 
 interface GoogleIdTokenClaims {
 	iss: string;

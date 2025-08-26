@@ -1,9 +1,8 @@
-import type { RequestEvent } from "@sveltejs/kit";
 import type { Database } from "$lib/server/db";
-
+import { getUserById } from "../db/queries/user";
 import { sha256 } from "@oslojs/crypto/sha2";
 import { encodeBase64url, encodeHexLowerCase } from "@oslojs/encoding";
-import { getUserById } from "../db/queries/user";
+import type { RequestEvent } from "@sveltejs/kit";
 
 interface StoredSession {
 	userId: string;

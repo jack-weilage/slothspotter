@@ -7,9 +7,9 @@
 </script>
 
 <script lang="ts">
-	import * as Dialog from "$lib/components/ui/dialog";
-	import { Button } from "$lib/components/ui/button";
 	import GoogleIcon from "$lib/components/icons/GoogleIcon.svelte";
+	import { Button } from "$lib/components/ui/button";
+	import * as Dialog from "$lib/components/ui/dialog";
 </script>
 
 <Dialog.Root bind:open>

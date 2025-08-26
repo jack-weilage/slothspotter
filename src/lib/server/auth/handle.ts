@@ -1,5 +1,3 @@
-import type { Handle } from "@sveltejs/kit";
-
 import {
 	deleteSessionTokenCookie,
 	sessionCookieName,
@@ -7,6 +5,7 @@ import {
 	validateSessionToken,
 } from "$lib/server/auth";
 import { connect } from "$lib/server/db";
+import type { Handle } from "@sveltejs/kit";
 
 export const handleAuth: Handle = async ({ event, resolve }) => {
 	const sessionToken = event.cookies.get(sessionCookieName);

@@ -1,8 +1,7 @@
-import { generateState, generateCodeVerifier } from "arctic";
 import { google } from "$lib/server/auth/oauth";
-
 import type { RequestHandler } from "./$types";
 import { redirect } from "@sveltejs/kit";
+import { generateState, generateCodeVerifier } from "arctic";
 
 export const GET: RequestHandler = async function GET({ cookies }) {
 	const state = generateState();
