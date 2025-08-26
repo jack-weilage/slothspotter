@@ -29,15 +29,6 @@ export enum ContentType {
 export const ContentTypeSchema = type.valueOf(ContentType);
 
 /**
- * Types of sloth sightings
- */
-export enum SightingType {
-	Discovery = "discovery", // First report of a new sloth
-	Confirmation = "confirmation", // New photo/sighting of existing sloth
-	Removal = "removal", // Photo evidence that sloth is gone
-}
-
-/**
  * Report reasons for content moderation
  */
 export enum ReportReason {

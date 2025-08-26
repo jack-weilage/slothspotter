@@ -80,15 +80,6 @@ export type NewSloth = typeof sloth.$inferInsert;
 export type Sloth = typeof sloth.$inferSelect;
 
 /**
- * Types of sighting interactions with sloths
- */
-export enum SightingType {
-	Discovery = "discovery", // First report of a new sloth
-	Confirmation = "confirmation", // New photo/sighting of existing sloth
-	Removal = "removal", // Photo evidence that sloth is gone
-}
-
-/**
  * Individual sighting records - multiple sightings can exist per sloth
  * Each sighting represents one user's interaction with a specific sloth
  */
