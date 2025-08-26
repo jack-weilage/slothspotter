@@ -3,19 +3,25 @@ import { SlothStatus } from "$lib/client/db/schema";
 import { connect } from "$lib/server/db";
 import * as schema from "$lib/server/db/schema";
 import type { RequestHandler } from "./$types";
-import { ne } from "drizzle-orm";
+import { ne, sql } from "drizzle-orm";
 
 export const GET: RequestHandler = async ({ platform }) => {
 	const db = connect(platform!.env.DB);
 
 	// Get all active sloths for dynamic routes
-	const sloths = await db
-		.select({
-			id: schema.sloth.id,
-			discoveredAt: schema.sloth.discoveredAt,
-		})
-		.from(schema.sloth)
-		.where(ne(schema.sloth.status, SlothStatus.Removed));
+	const sloths = await db.query.sloth.findMany({
+		columns: {
+			id: true,
+		},
+		extras: {
+			discoveredAt: sql<Date | null>`(
+				SELECT MIN(${schema.sighting.createdAt})
+				FROM ${schema.sighting}
+				WHERE ${schema.sighting.slothId} = ${schema.sloth.id}
+			)`.as("discovered_at"),
+		},
+		where: ne(schema.sloth.status, SlothStatus.Removed),
+	});
 
 	const staticRoutes = [
 		{

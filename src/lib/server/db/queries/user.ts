@@ -1,5 +1,4 @@
 import type { Database } from "..";
-
 import * as schema from "../schema";
 import { and, eq } from "drizzle-orm";
 
@@ -13,9 +12,7 @@ export async function createUser(
 }
 
 export async function getUserById(db: Database, id: string): Promise<schema.User | undefined> {
-	const [user] = await db.select().from(schema.user).where(eq(schema.user.id, id));
-
-	return user;
+	return await db.query.user.findFirst({ where: eq(schema.user.id, id) });
 }
 
 export async function getUserByProviderAndId(
@@ -23,12 +20,9 @@ export async function getUserByProviderAndId(
 	provider: schema.AuthProvider,
 	providerId: string,
 ): Promise<schema.User | undefined> {
-	const [user] = await db
-		.select()
-		.from(schema.user)
-		.where(and(eq(schema.user.provider, provider), eq(schema.user.providerId, providerId)));
-
-	return user;
+	return await db.query.user.findFirst({
+		where: and(eq(schema.user.provider, provider), eq(schema.user.providerId, providerId)),
+	});
 }
 
 export async function updateUser(
@@ -40,6 +34,7 @@ export async function updateUser(
 		.update(schema.user)
 		.set({ ...updates, updatedAt: new Date() })
 		.where(eq(schema.user.id, id))
+		.limit(1)
 		.returning();
 
 	return user;
