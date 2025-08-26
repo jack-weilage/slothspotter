@@ -21,7 +21,9 @@ safe, and welcoming for everyone.
 - [SvelteKit](https://svelte.dev) is used for the API and webpages.
 - [MapLibre](https://maplibre.org/) and [Carto](https://carto.com) are used for mapping
   functionality.
-- [Cloudflare Workers](https://workers.cloudflare.com/) hosts the website and KV store
+- [Cloudflare Workers](https://workers.cloudflare.com/) hosts the website.
+- [Cloudflare Workers KV](https://developers.cloudflare.com/workers/runtime-apis/kv/) is used to
+  store non-relational data, such as user sessions.
 - [Cloudflare D1](https://developers.cloudflare.com/d1/) is used as the main database, storing user,
   sloth, and sighting data in a fast, reliable SQL database.
 - [Cloudflare Images](https://developers.cloudflare.com/images/) is used to store and serve
