@@ -15,7 +15,7 @@
 		// Binds
 		map?: maplibre.Map;
 		// Events
-		onclick?: maplibre.Listener;
+		onclick?: (e: maplibre.MapMouseEvent) => void;
 
 		children?: Snippet;
 	}

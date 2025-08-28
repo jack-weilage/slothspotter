@@ -29,7 +29,7 @@
 	} = $props();
 
 	const mapState = getContext<MapState>(maplibre.Map);
-	let container: HTMLDivElement;
+	let container: HTMLDivElement = $state();
 
 	$effect(() => {
 		mapState.map.addControl(control, position);
@@ -40,6 +40,8 @@
 	});
 </script>
 
-<div bind:this={container} class="contents">
-	{@render children?.()}
-</div>
+{#if control instanceof SvelteControl}
+	<div bind:this={container} class="maplibregl-ctrl maplibregl-ctrl-group">
+		{@render children?.()}
+	</div>
+{/if}
