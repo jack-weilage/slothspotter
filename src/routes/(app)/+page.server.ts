@@ -1,14 +1,15 @@
-import type { PageServerLoad, Actions } from "./$types";
-
-import { connect } from "$lib/server/db";
-import * as schema from "$lib/server/db/schema";
-import { asc, eq, sql } from "drizzle-orm";
-import { fail } from "@sveltejs/kit";
-import { randomUUID } from "crypto";
-import { type } from "arktype";
+import { SlothStatus } from "$lib/client/db/schema";
+import { SubmitSlothSchema } from "$lib/components/dialogs/submit-sloth";
 import { deleteImage, uploadImage } from "$lib/server/cloudflare/images";
 import { validateTurnstile } from "$lib/server/cloudflare/turnstile";
-import { SlothStatus } from "$lib/client/db/schema";
+import { connect } from "$lib/server/db";
+import * as schema from "$lib/server/db/schema";
+import type { PageServerLoad, Actions } from "./$types";
+import { fail } from "@sveltejs/kit";
+import { randomUUID } from "crypto";
+import { asc, eq, sql } from "drizzle-orm";
+import { setError, superValidate } from "sveltekit-superforms";
+import { arktype } from "sveltekit-superforms/adapters";
 
 export const load: PageServerLoad = async ({ locals, platform }) => {
 	const db = connect(platform!.env.DB);
@@ -19,20 +20,11 @@ export const load: PageServerLoad = async ({ locals, platform }) => {
 			latitude: true,
 			longitude: true,
 			status: true,
-			discoveredAt: true,
 		},
 		with: {
-			discoveredBy: {
-				columns: {
-					id: true,
-					displayName: true,
-					avatarUrl: true,
-				},
-			},
 			sightings: {
 				limit: 1,
 				columns: {},
-				where: eq(schema.sighting.sightingType, schema.SightingType.Discovery),
 				orderBy: asc(schema.sighting.createdAt),
 				with: {
 					photos: {
@@ -42,15 +34,16 @@ export const load: PageServerLoad = async ({ locals, platform }) => {
 							cloudflareImageId: true,
 							lqip: true,
 						},
+						orderBy: asc(schema.photo.createdAt),
 					},
 				},
 			},
 		},
 		extras: {
-			totalSpots:
-				sql<number>`(SELECT count(*) FROM "spot" WHERE "spot"."sloth_id" = "sloth"."id")`.as(
-					"totalSpots",
-				),
+			uniqueSightings: sql<number>`(
+				SELECT count(DISTINCT ${schema.sighting.userId}) 
+				FROM ${schema.sighting} WHERE ${schema.sighting.slothId} = ${schema.sloth.id}
+			)`.as("unique_sightings"),
 		},
 		orderBy: asc(schema.sloth.createdAt),
 	});
@@ -58,65 +51,28 @@ export const load: PageServerLoad = async ({ locals, platform }) => {
 	return {
 		sloths,
 		user: locals.user,
+		submitSlothForm: await superValidate(arktype(SubmitSlothSchema)),
 	};
 };
 
-const FormSchema = type({
-	longitude: "string.numeric.parse",
-	latitude: "string.numeric.parse",
-	notes: "string < 500",
-	photos: "0 < File[] <= 3",
-	"cf-turnstile-response": "string",
-}).narrow(({ photos }, ctx) => {
-	for (const photo of photos) {
-		if (photo.size > 10 * 1024 * 1024) {
-			return ctx.reject({
-				expected: "less than 10MB",
-				actual: `${(photo.size / 1024 / 1024).toFixed(2)}MB`,
-				path: ["photos"],
-			});
-		}
-
-		if (photo.type && !photo.type.startsWith("image/")) {
-			return ctx.reject({
-				expected: "an image file",
-				actual: photo.type,
-				path: ["photos"],
-			});
-		}
-	}
-
-	return true;
-});
-
 export const actions: Actions = {
-	reportSloth: async ({ request, locals, platform }) => {
+	submitSloth: async ({ request, locals, getClientAddress, platform }) => {
 		// Check if user is authenticated
 		if (!locals.user) {
 			return fail(401, { error: "Authentication required" });
 		}
 
-		const formData = Object.fromEntries(await request.formData());
-		// HACK: There's no way for Object.fromEntries to know that photos should be an array if there's only one item.
-		if (!Array.isArray(formData.photos)) {
-			//@ts-expect-error
-			formData.photos = [formData.photos];
+		const form = await superValidate(request, arktype(SubmitSlothSchema));
+		if (!form.valid) {
+			return fail(400, { form });
 		}
 
-		const {
-			latitude,
-			longitude,
-			photos,
-			notes,
-			"cf-turnstile-response": turnstileResponse,
-		} = FormSchema.assert(formData);
-
-		if (
-			!(await validateTurnstile(turnstileResponse, request.headers.get("CF-Connecting-IP") || ""))
-		) {
-			return fail(400, {
-				error: "Turnstile validation failed. Please try again.",
-			});
+		if (!(await validateTurnstile(form.data["cf-turnstile-response"], getClientAddress()))) {
+			return setError(
+				form,
+				"cf-turnstile-response",
+				"Turnstile validation failed. Please try again.",
+			);
 		}
 
 		const db = connect(platform!.env.DB);
@@ -127,17 +83,16 @@ export const actions: Actions = {
 		await db.batch([
 			db.insert(schema.sloth).values({
 				id: slothId,
-				latitude,
-				longitude,
+				latitude: form.data.latitude,
+				longitude: form.data.longitude,
 				status: SlothStatus.Active,
-				discoveredBy: locals.user.id,
 			}),
 			db.insert(schema.sighting).values({
 				id: sightingId,
 				slothId: slothId,
+				slothStatus: SlothStatus.Active,
 				userId: locals.user.id,
-				sightingType: schema.SightingType.Discovery,
-				notes,
+				notes: form.data.notes,
 			}),
 		]);
 
@@ -145,7 +100,7 @@ export const actions: Actions = {
 		const uploadedPhotos: string[] = [];
 
 		try {
-			for (const photo of photos) {
+			for (const photo of form.data.photos) {
 				const photoId = randomUUID();
 
 				// Upload to Cloudflare Images
@@ -178,10 +133,5 @@ export const actions: Actions = {
 						: "Failed to upload photos. Please try again.",
 			});
 		}
-
-		return {
-			success: true,
-			message: "Sloth reported successfully!",
-		};
 	},
 };

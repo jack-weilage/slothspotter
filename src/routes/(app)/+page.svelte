@@ -1,43 +1,19 @@
 <script lang="ts">
-	import type { PageData } from "./$types";
-	import type { LngLatLike, MarkerOptions } from "maplibre-gl";
-
-	import Map from "$lib/components/map/Map.svelte";
-	import Marker from "$lib/components/map/Marker.svelte";
-	import Popup from "$lib/components/map/Popup.svelte";
-	import Control from "$lib/components/map/Control.svelte";
-	import ReportSlothDialog, {
-		openReportSlothDialog,
-	} from "$lib/components/ReportSlothDialog.svelte";
-	import SlothPreviewPopup from "$lib/components/SlothPreviewPopup.svelte";
-	import SEO from "$lib/components/SEO.svelte";
-	import maplibre from "maplibre-gl";
-	import PlusIcon from "@lucide/svelte/icons/plus";
-	import { Button } from "$lib/components/ui/button";
-	import { openLoginDialog } from "$lib/components/LoginDialog.svelte";
 	import { SlothStatus } from "$lib/client/db/schema";
+	import SEO from "$lib/components/SEO.svelte";
+	import SlothPreviewPopup from "$lib/components/SlothPreviewPopup.svelte";
+	import { LoginDialog } from "$lib/components/dialogs/login";
+	import { SubmitSlothDialog } from "$lib/components/dialogs/submit-sloth";
+	import * as Map from "$lib/components/map";
+	import { Button } from "$lib/components/ui/button";
+	import PlusIcon from "@lucide/svelte/icons/plus";
+	import maplibre from "maplibre-gl";
 
 	let { data } = $props();
 
-	const BELLINGHAM_COORDINATES: LngLatLike = [-122.478, 48.754];
+	const BELLINGHAM_COORDINATES: maplibre.LngLatLike = [-122.478, 48.754];
 
-	let reportLocation: LngLatLike | undefined = $state(undefined);
-
-	function getMarkerOptions(sloth: PageData["sloths"][0]): MarkerOptions {
-		return {
-			color: sloth.status === SlothStatus.Active ? "#8B5A2B" : "#6B7280",
-		};
-	}
-
-	function handleReportClick() {
-		if (!data.user) {
-			openLoginDialog();
-			return;
-		}
-
-		reportLocation = undefined;
-		openReportSlothDialog();
-	}
+	let submitSlothDialogOpen = $state(false);
 </script>
 
 <SEO
@@ -45,40 +21,52 @@
 	description="Discover and report stuffed sloth sightings around Bellingham, Washington. Join the community tracking these delightful creatures across the city."
 />
 
-<div class="relative h-[calc(100dvh-4rem)]">
-	<Map
-		options={{
-			style: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
-			center: BELLINGHAM_COORDINATES,
-			zoom: 13,
-			minZoom: 11,
-		}}
+{#snippet trigger({ props }: { props: Record<string, unknown> })}
+	<Button
+		onclick={() => (submitSlothDialogOpen = true)}
+		size="icon"
+		class="absolute right-6 bottom-6 h-14 w-14 rounded-full text-white shadow-lg transition-all hover:scale-105 focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 md:h-12 md:w-12"
+		aria-label="Report a new sloth"
+		{...props}
 	>
-		<Control position="top-right" control={new maplibre.NavigationControl()} />
-		<Control
+		<PlusIcon class="h-6 w-6 md:h-5 md:w-5" />
+	</Button>
+{/snippet}
+
+<div class="relative h-[calc(100dvh-4rem)]">
+	<Map.Root
+		style="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
+		attributionControl={false}
+		center={BELLINGHAM_COORDINATES}
+		zoom={13}
+		minZoom={11}
+	>
+		<Map.Control position="top-right" control={new maplibre.NavigationControl()} />
+		<Map.Control
 			position="top-right"
 			control={new maplibre.GeolocateControl({ trackUserLocation: true })}
 		/>
 
 		{#each data.sloths as sloth (sloth.id)}
-			<Marker lngLat={[sloth.longitude, sloth.latitude]} options={getMarkerOptions(sloth)}>
-				<Popup>
+			<Map.Marker
+				lngLat={[sloth.longitude, sloth.latitude]}
+				color={sloth.status === SlothStatus.Active ? "#8B5A2B" : "#6B7280"}
+			>
+				<Map.Popup closeButton={false}>
 					<SlothPreviewPopup {sloth} />
-				</Popup>
-			</Marker>
+				</Map.Popup>
+			</Map.Marker>
 		{/each}
-	</Map>
+	</Map.Root>
 
 	<!-- Floating Action Button for Report Sloth -->
-	<Button
-		onclick={handleReportClick}
-		size="icon"
-		class="absolute right-6 bottom-6 h-14 w-14 rounded-full bg-amber-600 text-white shadow-lg transition-all hover:scale-105 hover:bg-amber-700 focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 md:h-12 md:w-12"
-		aria-label="Report a new sloth"
-	>
-		<PlusIcon class="h-6 w-6 md:h-5 md:w-5" />
-	</Button>
+	{#if data.user}
+		<SubmitSlothDialog
+			submitSlothForm={data.submitSlothForm}
+			bind:open={submitSlothDialogOpen}
+			{trigger}
+		/>
+	{:else}
+		<LoginDialog bind:open={submitSlothDialogOpen} {trigger} />
+	{/if}
 </div>
-
-<!-- Dialogs -->
-<ReportSlothDialog initialLocation={reportLocation} />

@@ -1,10 +1,12 @@
 <script lang="ts">
 	import { enhance } from "$app/forms";
-	import LoginDialog, { openLoginDialog } from "$lib/components/LoginDialog.svelte";
+	import { LoginDialog } from "$lib/components/dialogs/login";
 	import * as Avatar from "$lib/components/ui/avatar";
 	import { Button } from "$lib/components/ui/button";
 
 	let { children, data } = $props();
+
+	let loginOpen = $state(false);
 </script>
 
 <header class="flex items-center justify-between bg-white p-4 shadow-sm">
@@ -31,10 +33,14 @@
 			</form>
 		</div>
 	{:else}
-		<Button onclick={openLoginDialog} variant="default" size="sm">Log in</Button>
+		<LoginDialog bind:open={loginOpen}>
+			{#snippet trigger({ props })}
+				<Button {...props} onclick={() => (loginOpen = true)} variant="default" size="sm">
+					Log in
+				</Button>
+			{/snippet}
+		</LoginDialog>
 	{/if}
 </header>
 
 {@render children?.()}
-
-<LoginDialog />
