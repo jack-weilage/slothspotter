@@ -1,25 +1,180 @@
-import type { PageServerLoad } from "./$types";
+import { ContentType, ReportReason, ReportReasonSchema } from "$lib/client/db/schema";
+import { ReportContentSchema } from "$lib/components/dialogs/report-content";
+import { SubmitSightingSchema } from "$lib/components/dialogs/submit-sighting";
+import { deleteImage, uploadImage } from "$lib/server/cloudflare/images";
+import { validateTurnstile } from "$lib/server/cloudflare/turnstile";
 import { connect } from "$lib/server/db";
-import { error } from "@sveltejs/kit";
+import * as schema from "$lib/server/db/schema";
+import type { Actions, PageServerLoad } from "./$types";
+import { error, fail } from "@sveltejs/kit";
+import { type } from "arktype";
+import { randomUUID } from "crypto";
+import { desc, eq } from "drizzle-orm";
+import { setError, superValidate } from "sveltekit-superforms";
+import { arktype } from "sveltekit-superforms/adapters";
 
 export const load: PageServerLoad = async ({ params, platform }) => {
 	const db = connect(platform!.env.DB);
 
-	try {
-		const sloth = await db.query.sloth.findFirst({
-			where: (table, { eq }) => eq(table.id, params.id),
-		});
+	const sloth = await db.query.sloth.findFirst({
+		where: eq(schema.sloth.id, params.id),
+		with: {
+			sightings: {
+				orderBy: desc(schema.sighting.createdAt),
+				columns: {
+					id: true,
+					createdAt: true,
+					slothStatus: true,
+					notes: true,
+				},
+				with: {
+					sightedBy: {
+						columns: {
+							id: true,
+							displayName: true,
+							avatarUrl: true,
+						},
+					},
+					photos: {
+						columns: {
+							cloudflareImageId: true,
+							caption: true,
+							lqip: true,
+						},
+					},
+				},
+			},
+		},
+	});
 
-		if (!sloth) {
-			throw error(404, "Sloth not found");
+	if (!sloth || sloth.sightings.length === 0) {
+		throw error(404, "Sloth not found");
+	}
+
+	return {
+		sloth,
+		submitSightingForm: await superValidate(arktype(SubmitSightingSchema)),
+		reportContentForm: await superValidate(arktype(ReportContentSchema)),
+	};
+};
+
+const ReportSlothSchema = type({
+	"cf-turnstile-response": "string",
+
+	reason: ReportReasonSchema,
+	comment: "string?",
+}).narrow(({ reason, comment }, ctx) => {
+	if (reason === ReportReason.Other && comment === undefined) {
+		return ctx.reject("a description of the reasoning behind the report");
+	}
+
+	return true;
+});
+
+export const actions: Actions = {
+	submitSighting: async ({ request, locals, getClientAddress, platform, params }) => {
+		if (!locals.user) {
+			return fail(401, { error: "Authentication required" });
 		}
 
-		// TODO: Add additional data like sightings, photos, etc.
-		return {
-			sloth,
-		};
-	} catch (err) {
-		console.error("Error loading sloth:", err);
-		throw error(500, "Failed to load sloth details");
-	}
+		const form = await superValidate(request, arktype(SubmitSightingSchema));
+		if (!form.valid) {
+			return fail(400, { form });
+		}
+
+		if (!(await validateTurnstile(form.data["cf-turnstile-response"], getClientAddress()))) {
+			return setError(
+				form,
+				"cf-turnstile-response",
+				"Turnstile validation failed. Please try again.",
+			);
+		}
+
+		const db = connect(platform!.env.DB);
+
+		if (!(await db.query.sloth.findFirst({ where: eq(schema.sloth.id, params.id) }))) {
+			return fail(404, { error: "Sloth not found" });
+		}
+
+		const sightingId = randomUUID();
+		await db.insert(schema.sighting).values({
+			id: sightingId,
+			slothId: params.id,
+			slothStatus: form.data.slothStatus,
+			userId: locals.user.id,
+			notes: form.data.notes,
+		});
+
+		// Upload photos to Cloudflare Images and create photo records
+		const uploadedPhotos: string[] = [];
+
+		try {
+			for (const photo of form.data.photos) {
+				const photoId = randomUUID();
+
+				// Upload to Cloudflare Images
+				const cloudflareImageId = await uploadImage(photo, photoId, locals.user.id);
+				uploadedPhotos.push(cloudflareImageId);
+
+				await db.insert(schema.photo).values({
+					id: photoId,
+					sightingId: sightingId,
+					cloudflareImageId,
+				});
+			}
+		} catch (uploadError) {
+			// Clean up any successfully uploaded images
+			for (const photoId of uploadedPhotos) {
+				await deleteImage(photoId);
+				await db.delete(schema.photo).where(eq(schema.photo.cloudflareImageId, photoId));
+			}
+
+			// Clean up database records (sloth and sighting)
+			await db.batch([
+				db.delete(schema.sighting).where(eq(schema.sighting.id, sightingId)),
+				db.delete(schema.sloth).where(eq(schema.sloth.id, params.id)),
+			]);
+
+			return fail(500, {
+				error:
+					uploadError instanceof Error
+						? `Photo upload failed: ${uploadError.message}`
+						: "Failed to upload photos. Please try again.",
+			});
+		}
+	},
+	reportSloth: async ({ locals, request, getClientAddress, platform, params }) => {
+		if (!locals.user) {
+			return fail(403);
+		}
+
+		const parsedData = ReportSlothSchema(await request.formData());
+
+		if (parsedData instanceof type.errors) {
+			return fail(400, {
+				error: "Invalid form data",
+				details: parsedData.summary,
+			});
+		}
+
+		const { "cf-turnstile-response": turnstileToken, reason, comment } = parsedData;
+
+		const turnstileResponse = validateTurnstile(turnstileToken, getClientAddress());
+		if (!turnstileResponse) {
+			return fail(400, {
+				error: "Turnstile validation failed",
+			});
+		}
+
+		const db = connect(platform!.env.DB);
+
+		// TODO: Users can report the same content multiple times.
+		await db.insert(schema.moderationReport).values({
+			reason,
+			comment,
+			reportedBy: locals.user.id,
+			contentType: ContentType.Sloth,
+			contentId: params.id,
+		});
+	},
 };

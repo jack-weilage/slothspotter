@@ -6,57 +6,42 @@
 	let {
 		photos = $bindable([]),
 		maxPhotos = 3,
-		onAddPhoto,
-		onRemovePhoto,
-		onPhotoClick,
+		onaddphoto,
+		onremovephoto,
 		disabled = false,
-		class: className = "",
 	}: {
 		photos?: File[];
 		maxPhotos?: number;
-		onAddPhoto?: () => void;
-		onRemovePhoto?: (index: number) => void;
-		onPhotoClick?: (photo: File, index: number) => void;
+		onaddphoto?: () => void;
+		onremovephoto?: (index: number) => void;
 		disabled?: boolean;
-		class?: string;
 	} = $props();
-
-	function removePhoto(index: number) {
-		if (onRemovePhoto) {
-			onRemovePhoto(index);
-		} else {
-			photos.splice(index, 1);
-			photos = [...photos];
-		}
-	}
-
-	function handlePhotoClick(photo: File, index: number) {
-		onPhotoClick?.(photo, index);
-	}
 </script>
 
-<div class="space-y-3 {className}">
+<div class="space-y-3">
 	<div class="flex flex-wrap gap-2">
-		{#if photos.length < maxPhotos && !disabled}
-			<Button
-				type="button"
-				onclick={onAddPhoto}
-				variant="outline"
-				class="h-20 w-20 border-2 border-dashed border-gray-300 bg-gray-50 hover:border-gray-400 hover:bg-gray-100"
-				aria-label="Add photo"
-			>
-				<div class="text-center">
-					<CameraIcon class="mx-auto mb-1 h-6 w-6 text-gray-400" />
-					<span class="text-xs text-gray-500">Add Photo</span>
-				</div>
-			</Button>
-		{/if}
+		<Button
+			type="button"
+			onclick={onaddphoto}
+			variant="outline"
+			class="h-20 w-full border-2 border-dashed border-gray-300 bg-gray-50 hover:border-gray-400 hover:bg-gray-100"
+			disabled={disabled || photos.length >= maxPhotos}
+		>
+			<div class="text-center">
+				<CameraIcon class="mx-auto mb-1 h-6 w-6 text-gray-400" />
+				<span class="text-xs text-gray-500">Add Photo</span>
+			</div>
+		</Button>
+
 		{#each photos as photo, index (photo.name + photo.size + index)}
 			<PhotoThumbnail
 				source={photo}
 				alt="Selected photo {index + 1}"
-				onRemove={() => removePhoto(index)}
-				onClick={() => handlePhotoClick(photo, index)}
+				onremove={() => {
+					onremovephoto?.(index);
+					photos.splice(index, 1);
+					photos = photos;
+				}}
 				removable={!disabled}
 			/>
 		{/each}

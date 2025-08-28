@@ -21,18 +21,6 @@
 	description="Discover and report stuffed sloth sightings around Bellingham, Washington. Join the community tracking these delightful creatures across the city."
 />
 
-{#snippet trigger({ props }: { props: Record<string, unknown> })}
-	<Button
-		onclick={() => (submitSlothDialogOpen = true)}
-		size="icon"
-		class="absolute right-6 bottom-6 h-14 w-14 rounded-full text-white shadow-lg transition-all hover:scale-105 focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 md:h-12 md:w-12"
-		aria-label="Report a new sloth"
-		{...props}
-	>
-		<PlusIcon class="h-6 w-6 md:h-5 md:w-5" />
-	</Button>
-{/snippet}
-
 <div class="relative h-[calc(100dvh-4rem)]">
 	<Map.Root
 		style="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
@@ -58,6 +46,18 @@
 			</Map.Marker>
 		{/each}
 	</Map.Root>
+
+	{#snippet trigger({ props }: { props: Record<string, unknown> })}
+		<Button
+			onclick={() => (submitSlothDialogOpen = true)}
+			size="icon"
+			class="absolute right-6 bottom-6 h-14 w-14 rounded-full text-white shadow-lg transition-all hover:scale-105 focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 md:h-12 md:w-12"
+			aria-label="Report a new sloth"
+			{...props}
+		>
+			<PlusIcon class="h-6 w-6 md:h-5 md:w-5" />
+		</Button>
+	{/snippet}
 
 	<!-- Floating Action Button for Report Sloth -->
 	{#if data.user}
