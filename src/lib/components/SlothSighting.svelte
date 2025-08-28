@@ -41,8 +41,6 @@
 			.join("")
 			.toUpperCase();
 	}
-
-	let submitSightingDialogOpen = $state(false);
 </script>
 
 <Card.Root>

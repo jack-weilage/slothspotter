@@ -4,6 +4,7 @@ import {
 	ReportReason,
 	UserRole,
 	ModerationReportStatus,
+	ModerationActionType,
 } from "../../client/db/schema";
 import { randomUUID } from "crypto";
 import { relations } from "drizzle-orm";

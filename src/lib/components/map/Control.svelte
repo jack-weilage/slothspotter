@@ -6,7 +6,7 @@
 
 	class SvelteControl implements maplibre.IControl {
 		onAdd() {
-			return container;
+			return container!;
 		}
 
 		onRemove() {}
@@ -29,7 +29,7 @@
 	} = $props();
 
 	const mapState = getContext<MapState>(maplibre.Map);
-	let container: HTMLDivElement = $state();
+	let container: HTMLDivElement | undefined = $state();
 
 	$effect(() => {
 		mapState.map.addControl(control, position);

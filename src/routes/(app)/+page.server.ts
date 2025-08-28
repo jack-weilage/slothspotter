@@ -7,7 +7,6 @@ import { connect } from "$lib/server/db";
 import * as schema from "$lib/server/db/schema";
 import type { PageServerLoad, Actions } from "./$types";
 import { fail } from "@sveltejs/kit";
-import { type } from "arktype";
 import { randomUUID } from "crypto";
 import { asc, eq, sql } from "drizzle-orm";
 import { setError, superValidate } from "sveltekit-superforms";
