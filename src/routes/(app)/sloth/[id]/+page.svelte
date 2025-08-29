@@ -164,7 +164,11 @@
 
 				<div class="space-y-6">
 					{#each data.sloth.sightings as sighting (sighting.id)}
-						<SlothSighting {sighting} reportContentForm={data.reportContentForm} />
+						<SlothSighting
+							{sighting}
+							reportContentForm={data.reportContentForm}
+							isOwned={sighting.sightedBy.id === data.user?.id}
+						/>
 					{:else}
 						<div class="py-12 text-center">
 							<CameraIcon class="mx-auto mb-4 h-12 w-12 text-gray-400" />

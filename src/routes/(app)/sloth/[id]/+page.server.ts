@@ -6,10 +6,10 @@ import { validateTurnstile } from "$lib/server/cloudflare/turnstile";
 import { connect } from "$lib/server/db";
 import * as schema from "$lib/server/db/schema";
 import type { Actions, PageServerLoad } from "./$types";
-import { error, fail } from "@sveltejs/kit";
+import { error, fail, redirect } from "@sveltejs/kit";
 import { type } from "arktype";
 import { randomUUID } from "crypto";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { setError, superValidate } from "sveltekit-superforms";
 import { arktype } from "sveltekit-superforms/adapters";
 
@@ -69,6 +69,10 @@ const ReportSlothSchema = type({
 	}
 
 	return true;
+});
+
+const DeleteSightingSchema = type({
+	sightingId: "string.uuid",
 });
 
 export const actions: Actions = {
@@ -143,12 +147,52 @@ export const actions: Actions = {
 			});
 		}
 	},
+	deleteSighting: async ({ locals, request, platform }) => {
+		if (!locals.user) {
+			return fail(403);
+		}
+
+		const data = DeleteSightingSchema(Object.fromEntries(await request.formData()));
+		if (data instanceof type.errors) {
+			return fail(400, {
+				error: "Invalid form data",
+				details: data.summary,
+			});
+		}
+
+		const { sightingId } = data;
+
+		const db = connect(platform!.env.DB);
+
+		const sighting = await db.query.sighting.findFirst({
+			where: and(eq(schema.sighting.id, sightingId), eq(schema.sighting.userId, locals.user.id)),
+		});
+		if (!sighting) {
+			return fail(404, {
+				error: "Sighting not found",
+			});
+		}
+
+		const sightings = await db.$count(
+			schema.sighting,
+			eq(schema.sighting.slothId, sighting.slothId),
+		);
+
+		// Delete the sloth if this is the last sighting.
+		if (sightings <= 1) {
+			await db.delete(schema.sloth).where(eq(schema.sloth.id, sighting.slothId));
+
+			redirect(308, "/");
+		} else {
+			await db.delete(schema.sighting).where(eq(schema.sighting.id, sightingId));
+		}
+	},
 	reportSloth: async ({ locals, request, getClientAddress, platform, params }) => {
 		if (!locals.user) {
 			return fail(403);
 		}
 
-		const parsedData = ReportSlothSchema(await request.formData());
+		const parsedData = ReportSlothSchema(Object.fromEntries(await request.formData()));
 
 		if (parsedData instanceof type.errors) {
 			return fail(400, {

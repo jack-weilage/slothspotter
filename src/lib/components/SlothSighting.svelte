@@ -10,9 +10,11 @@
 	import type { Infer, SuperValidated } from "sveltekit-superforms";
 
 	let {
+		isOwned,
 		sighting,
 		reportContentForm,
 	}: {
+		isOwned: boolean;
 		sighting: {
 			id: string;
 			slothStatus: SlothStatus;
@@ -71,7 +73,7 @@
 		</div>
 
 		<SlothStatusBadge status={sighting.slothStatus} />
-		<SightingActionDropdown sightingId={sighting.id} {reportContentForm} />
+		<SightingActionDropdown sightingId={sighting.id} {isOwned} {reportContentForm} />
 	</Card.Header>
 	<Card.Content class="space-y-3">
 		{#if sighting.photos.length > 0}
