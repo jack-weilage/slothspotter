@@ -11,10 +11,12 @@
 
 	let {
 		isOwned,
+		isLoggedIn,
 		sighting,
 		reportContentForm,
 	}: {
 		isOwned: boolean;
+		isLoggedIn: boolean;
 		sighting: {
 			id: string;
 			slothStatus: SlothStatus;
@@ -73,7 +75,7 @@
 		</div>
 
 		<SlothStatusBadge status={sighting.slothStatus} />
-		<SightingActionDropdown sightingId={sighting.id} {isOwned} {reportContentForm} />
+		<SightingActionDropdown sightingId={sighting.id} {isOwned} {reportContentForm} {isLoggedIn} />
 	</Card.Header>
 	<Card.Content class="space-y-3">
 		{#if sighting.photos.length > 0}

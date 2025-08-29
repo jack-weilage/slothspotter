@@ -170,6 +170,7 @@
 							{sighting}
 							reportContentForm={data.reportContentForm}
 							isOwned={sighting.sightedBy.id === data.user?.id}
+							isLoggedIn={!!data.user}
 						/>
 					{:else}
 						<div class="py-12 text-center">

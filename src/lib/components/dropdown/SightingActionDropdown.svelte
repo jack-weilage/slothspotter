@@ -10,12 +10,12 @@
 	import type { Infer, SuperValidated } from "sveltekit-superforms";
 
 	let {
-		userRole,
+		isLoggedIn,
 		sightingId,
 		isOwned,
 		reportContentForm,
 	}: {
-		userRole: UserRole | undefined;
+		isLoggedIn: boolean;
 		sightingId: string;
 		isOwned: boolean;
 		reportContentForm: SuperValidated<Infer<typeof ReportContentSchema>>;
@@ -45,7 +45,7 @@
 	{/if}
 </DropdownMenu.Root>
 
-{#if userRole}
+{#if isLoggedIn}
 	<ReportContentDialog
 		bind:open={reportContentDialogOpen}
 		{reportContentForm}
