@@ -11,6 +11,11 @@ const config = {
 		prerender: {
 			origin: "https://slothspotter.com",
 		},
+		experimental: {
+			instrumentation: {
+				server: true,
+			},
+		},
 	},
 };
 
