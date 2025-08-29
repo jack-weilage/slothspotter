@@ -1,30 +1,37 @@
 <script lang="ts">
-	import maplibre from "maplibre-gl";
-	import { getContext, onMount, type Snippet } from "svelte";
 	import type { MapState } from "./Map.svelte";
+	import maplibre from "maplibre-gl";
+	import type { Snippet } from "svelte";
+	import { getContext } from "svelte";
 
 	class SvelteControl implements maplibre.IControl {
 		onAdd() {
-			return container;
+			return container!;
 		}
 
 		onRemove() {}
 	}
 
 	let {
+		control = $bindable(new SvelteControl()),
+
 		position = "top-right",
-		control = new SvelteControl(),
+
 		children,
 	}: {
-		position?: "top-left" | "top-right" | "bottom-left" | "bottom-right";
+		// Binds
 		control?: maplibre.IControl;
+
+		position?: "top-left" | "top-right" | "bottom-left" | "bottom-right";
+
+		// Control content
 		children?: Snippet;
 	} = $props();
 
 	const mapState = getContext<MapState>(maplibre.Map);
-	let container: HTMLDivElement;
+	let container: HTMLDivElement | undefined = $state();
 
-	onMount(() => {
+	$effect(() => {
 		mapState.map.addControl(control, position);
 
 		return () => {
@@ -33,16 +40,8 @@
 	});
 </script>
 
-<div bind:this={container} class="contents">
-	{@render children?.()}
-</div>
-
-<style>
-	/* Hide default styling */
-	:global(.maplibregl-popup-content) {
-		display: contents;
-	}
-	:global(.maplibregl-popup-close-button) {
-		display: none;
-	}
-</style>
+{#if control instanceof SvelteControl}
+	<div bind:this={container} class="maplibregl-ctrl maplibregl-ctrl-group">
+		{@render children?.()}
+	</div>
+{/if}

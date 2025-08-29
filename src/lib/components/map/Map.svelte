@@ -5,41 +5,95 @@
 </script>
 
 <script lang="ts">
-	import "maplibre-gl/dist/maplibre-gl.css";
-
+	import { resetEventListener } from "./utils";
 	import maplibre from "maplibre-gl";
-	import { onMount, setContext, type Snippet } from "svelte";
+	import "maplibre-gl/dist/maplibre-gl.css";
+	import type { Snippet } from "svelte";
+	import { setContext, untrack } from "svelte";
+
+	interface Props extends Omit<maplibre.MapOptions, "container"> {
+		// Binds
+		map?: maplibre.Map;
+		// Events
+		onclick?: (e: maplibre.MapMouseEvent) => void;
+
+		children?: Snippet;
+	}
 
 	let mapContainer: HTMLDivElement;
 
+	let {
+		map = $bindable(),
+		// Dynamically settable props
+		maxBounds,
+		minZoom,
+		maxZoom,
+		minPitch,
+		maxPitch,
+		center,
+		// TODO: Add more dynamic props
+
+		onclick,
+
+		children,
+		// Non-dynamic props
+		...restProps
+	}: Props = $props();
+
 	let mapState: MapState = $state({ map: undefined! });
 	setContext(maplibre.Map, mapState);
+	$effect(() => {
+		mapState.map = map!;
+	});
 
-	let {
-		options,
-		onclick,
-		children,
-	}: {
-		options: Omit<maplibre.MapOptions, "container">;
-		onclick?: (event: CustomEvent<{ lngLat: maplibre.LngLatLike }>) => void;
-		children?: Snippet;
-	} = $props();
+	$effect(() => {
+		const dynamicProps = untrack(() => ({
+			maxBounds,
+			minZoom,
+			maxZoom,
+			minPitch,
+			maxPitch,
+			center,
+		}));
 
-	onMount(() => {
-		mapState.map = new maplibre.Map({
-			...options,
+		map = new maplibre.Map({
+			...dynamicProps,
+			...restProps,
 			container: mapContainer,
 		});
 
-		// Add click event listener if onclick is provided
-		if (onclick) {
-			mapState.map.on("click", (e) => {
-				const customEvent = new CustomEvent("click", {
-					detail: { lngLat: e.lngLat },
-				}) as CustomEvent<{ lngLat: maplibre.LngLatLike }>;
-				onclick(customEvent);
-			});
-		}
+		return () => {
+			map?.remove();
+			map = undefined!;
+		};
+	});
+
+	$effect(() => resetEventListener(map, "click", onclick));
+
+	$effect(() => {
+		map?.setMaxBounds(maxBounds);
+	});
+
+	$effect(() => {
+		map?.setMinZoom(minZoom);
+	});
+
+	$effect(() => {
+		map?.setMaxZoom(maxZoom);
+	});
+
+	$effect(() => {
+		map?.setMinPitch(minPitch);
+	});
+
+	$effect(() => {
+		map?.setMinPitch(maxPitch);
+	});
+
+	$effect(() => {
+		if (!center) return;
+
+		map?.setCenter(center);
 	});
 </script>
 

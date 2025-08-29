@@ -1,4 +1,22 @@
-import { sqliteTable, integer, text, real, primaryKey } from "drizzle-orm/sqlite-core";
+import {
+	SlothStatus,
+	ContentType,
+	ReportReason,
+	UserRole,
+	ModerationReportStatus,
+	ModerationActionType,
+} from "../../client/db/schema";
+import { randomUUID } from "crypto";
+import { relations } from "drizzle-orm";
+import { sqliteTable, integer, text, real, uniqueIndex, index } from "drizzle-orm/sqlite-core";
+
+const createdAt = integer("created_at", { mode: "timestamp" })
+	.notNull()
+	.$defaultFn(() => new Date());
+
+const updatedAt = integer("updated_at", { mode: "timestamp" })
+	.notNull()
+	.$onUpdateFn(() => new Date());
 
 /**
  * Authentication provider types
@@ -10,82 +28,98 @@ export enum AuthProvider {
 /**
  * User authentication and profile data
  */
-export const user = sqliteTable("user", {
-	id: text("id").primaryKey(), // UUID
-	displayName: text("display_name").notNull(),
-	avatarUrl: text("avatar_url"),
-	provider: text("provider").$type<AuthProvider>().notNull(),
-	providerId: text("provider_id").notNull(),
-	createdAt: integer("created_at", { mode: "timestamp" })
-		.notNull()
-		.$defaultFn(() => new Date()),
-	updatedAt: integer("updated_at", { mode: "timestamp" })
-		.notNull()
-		.$defaultFn(() => new Date()),
-});
+export const user = sqliteTable(
+	"user",
+	{
+		id: text("id")
+			.primaryKey()
+			.$defaultFn(() => randomUUID()),
+		displayName: text("display_name").notNull(),
+		avatarUrl: text("avatar_url"),
+		role: text("role").notNull().$type<UserRole>().default(UserRole.User),
+		provider: text("provider").notNull().$type<AuthProvider>(),
+		providerId: text("provider_id").notNull(),
+		bannedUntil: integer("banned_until", { mode: "timestamp" }),
+		createdAt,
+		updatedAt,
+	},
+	(t) => [
+		// Optimizes login lookups
+		uniqueIndex("user_provider_provider_id_idx").on(t.provider, t.providerId),
+	],
+);
+
+export const userRelations = relations(user, ({ many }) => ({
+	sightings: many(sighting),
+	reportsSubmitted: many(moderationReport, { relationName: "reportedBy" }),
+	reportsAssigned: many(moderationReport, { relationName: "assignedTo" }),
+}));
 
 export type NewUser = typeof user.$inferInsert;
 export type User = typeof user.$inferSelect;
-
-/**
- * Status of a sloth in the wild
- */
-export enum SlothStatus {
-	Active = "active",
-	Removed = "removed",
-}
 
 /**
  * Core sloth entity - represents each unique physical stuffed sloth in Bellingham
  * Each sloth gets exactly ONE record, with multiple sightings linked to it
  */
 export const sloth = sqliteTable("sloth", {
-	id: text("id").primaryKey(), // UUID
+	id: text("id")
+		.primaryKey()
+		.$defaultFn(() => randomUUID()),
 	latitude: real("latitude").notNull(),
 	longitude: real("longitude").notNull(),
-	status: text("status").$type<SlothStatus>().notNull().default(SlothStatus.Active),
-	discoveredBy: text("discovered_by")
-		.notNull()
-		.references(() => user.id),
-	discoveredAt: integer("discovered_at", { mode: "timestamp" }).notNull(),
-	createdAt: integer("created_at", { mode: "timestamp" })
-		.notNull()
-		.$defaultFn(() => new Date()),
-	updatedAt: integer("updated_at", { mode: "timestamp" })
-		.notNull()
-		.$defaultFn(() => new Date()),
+	status: text("status").notNull().$type<SlothStatus>().default(SlothStatus.Active),
+	createdAt,
+	updatedAt,
 });
+
+export const slothRelations = relations(sloth, ({ many }) => ({
+	sightings: many(sighting),
+}));
 
 export type NewSloth = typeof sloth.$inferInsert;
 export type Sloth = typeof sloth.$inferSelect;
 
 /**
- * Types of sighting interactions with sloths
- */
-export enum SightingType {
-	Discovery = "discovery", // First report of a new sloth
-	Confirmation = "confirmation", // New photo/sighting of existing sloth
-	Removal = "removal", // Photo evidence that sloth is gone
-}
-
-/**
  * Individual sighting records - multiple sightings can exist per sloth
  * Each sighting represents one user's interaction with a specific sloth
  */
-export const sighting = sqliteTable("sighting", {
-	id: text("id").primaryKey(), // UUID
-	slothId: text("sloth_id")
-		.notNull()
-		.references(() => sloth.id),
-	userId: text("user_id")
-		.notNull()
-		.references(() => user.id),
-	sightingType: text("sighting_type").$type<SightingType>().notNull(),
-	notes: text("notes"), // Optional description or comments
-	createdAt: integer("created_at", { mode: "timestamp" })
-		.notNull()
-		.$defaultFn(() => new Date()),
-});
+export const sighting = sqliteTable(
+	"sighting",
+	{
+		id: text("id")
+			.primaryKey()
+			.$defaultFn(() => randomUUID()),
+		slothId: text("sloth_id")
+			.notNull()
+			.references(() => sloth.id, { onDelete: "cascade" }),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		slothStatus: text("sloth_status").notNull().$type<SlothStatus>(),
+		notes: text("notes"), // Optional description or comments
+		createdAt,
+		updatedAt,
+	},
+	(t) => [
+		// Optimizes finding sightings on sloth details
+		index("sighting_sloth_id_idx").on(t.slothId),
+		// Optimizes finding sightings on user profile
+		index("sighting_user_id_idx").on(t.userId),
+	],
+);
+
+export const sightingRelations = relations(sighting, ({ many, one }) => ({
+	photos: many(photo),
+	sloth: one(sloth, {
+		fields: [sighting.slothId],
+		references: [sloth.id],
+	}),
+	sightedBy: one(user, {
+		fields: [sighting.userId],
+		references: [user.id],
+	}),
+}));
 
 export type NewSighting = typeof sighting.$inferInsert;
 export type Sighting = typeof sighting.$inferSelect;
@@ -94,87 +128,99 @@ export type Sighting = typeof sighting.$inferSelect;
  * Photo storage linked to sightings
  * Photos are stored via Cloudflare Images API
  */
-export const photo = sqliteTable("photo", {
-	id: text("id").primaryKey(), // UUID
-	sightingId: text("sighting_id")
-		.notNull()
-		.references(() => sighting.id),
-	lqip: integer("lqip"), // Optional low-quality image placeholder
-	cloudflareImageId: text("cloudflare_image_id").notNull(), // Cloudflare Images ID
-	caption: text("caption"),
-	createdAt: integer("created_at", { mode: "timestamp" })
-		.notNull()
-		.$defaultFn(() => new Date()),
-});
+export const photo = sqliteTable(
+	"photo",
+	{
+		id: text("id")
+			.primaryKey()
+			.$defaultFn(() => randomUUID()),
+		sightingId: text("sighting_id")
+			.notNull()
+			.references(() => sighting.id, { onDelete: "cascade" }),
+		lqip: integer("lqip"), // Optional low-quality image placeholder
+		cloudflareImageId: text("cloudflare_image_id").unique().notNull(), // Cloudflare Images ID
+		caption: text("caption"),
+		createdAt,
+		updatedAt,
+	},
+	(t) => [
+		// Optimizes finding photos from a sighting
+		index("photo_sighting_id_idx").on(t.sightingId),
+	],
+);
+
+export const photoRelations = relations(photo, ({ one }) => ({
+	sighting: one(sighting, {
+		fields: [photo.sightingId],
+		references: [sighting.id],
+	}),
+}));
 
 export type NewPhoto = typeof photo.$inferInsert;
 export type Photo = typeof photo.$inferSelect;
 
-/**
- * Simple "spot" interactions - users can mark that they've seen a sloth
- * Separate from sightings to allow quick, lightweight interactions
- * Composite primary key prevents duplicate spots from same user
- */
-export const spot = sqliteTable(
-	"spot",
+export const moderationReport = sqliteTable(
+	"moderation_report",
 	{
-		slothId: text("sloth_id")
+		id: text("id")
+			.primaryKey()
+			.$defaultFn(() => randomUUID()),
+		contentId: text("content_id").notNull(),
+		contentType: text("content_type").notNull().$type<ContentType>(),
+		reportedBy: text("reported_by")
 			.notNull()
-			.references(() => sloth.id),
-		userId: text("user_id")
+			.references(() => user.id, { onDelete: "cascade" }),
+		reason: text("reason").notNull().$type<ReportReason>(),
+		comment: text("comment"),
+		status: text("status")
 			.notNull()
-			.references(() => user.id),
-		spottedAt: integer("spotted_at", { mode: "timestamp" })
-			.notNull()
-			.$defaultFn(() => new Date()),
+			.$type<ModerationReportStatus>()
+			.default(ModerationReportStatus.Open),
+		createdAt,
+		updatedAt,
 	},
-	(table) => ({
-		pk: primaryKey({ columns: [table.slothId, table.userId] }),
-	}),
+	(t) => [
+		// Optimizes finding reports by status
+		index("moderation_report_status_idx").on(t.status),
+	],
 );
 
-export type NewSpot = typeof spot.$inferInsert;
-export type Spot = typeof spot.$inferSelect;
+export const moderationReportRelations = relations(moderationReport, ({ one }) => ({
+	// TODO: Polymorphic relations for contentId based on contentType
+	reportedBy: one(user, {
+		fields: [moderationReport.reportedBy],
+		references: [user.id],
+	}),
+}));
 
-/**
- * Content types that can be flagged for moderation
- */
-export enum ContentType {
-	Sloth = "sloth",
-	Sighting = "sighting",
-	Photo = "photo",
-}
+export type NewModerationReport = typeof moderationReport.$inferInsert;
+export type ModerationReport = typeof moderationReport.$inferSelect;
 
-/**
- * Reasons for flagging content
- */
-export enum FlagReason {
-	Inappropriate = "inappropriate",
-	NotASloth = "not_a_sloth",
-	Duplicate = "duplicate",
-	PrivacyConcern = "privacy_concern",
-}
-
-/**
- * Community-driven content moderation system
- * Allows users to flag inappropriate or problematic content
- */
-export const moderationFlag = sqliteTable("moderation_flag", {
-	id: text("id").primaryKey(), // UUID
-	contentType: text("content_type").$type<ContentType>().notNull(),
-	contentId: text("content_id").notNull(), // ID of the flagged content
-	flaggedByUserId: text("flagged_by_user_id")
+export const moderationAction = sqliteTable("moderation_action", {
+	id: text("id")
+		.primaryKey()
+		.$defaultFn(() => randomUUID()),
+	reportId: text("report_id")
 		.notNull()
-		.references(() => user.id),
-	reason: text("reason").$type<FlagReason>().notNull(),
-	notes: text("notes"), // Optional additional details
-	resolved: integer("resolved", { mode: "boolean" }).notNull().default(false),
-	resolvedBy: text("resolved_by").references(() => user.id),
-	resolvedAt: integer("resolved_at", { mode: "timestamp" }),
-	createdAt: integer("created_at", { mode: "timestamp" })
+		.references(() => moderationReport.id, { onDelete: "cascade" }),
+	actionedBy: text("actioned_by")
 		.notNull()
-		.$defaultFn(() => new Date()),
+		.references(() => user.id, { onDelete: "cascade" }),
+	actionType: text("action_type").notNull().$type<ModerationActionType>(),
+	comment: text("note").notNull(),
+	createdAt,
 });
 
-export type NewModerationFlag = typeof moderationFlag.$inferInsert;
-export type ModerationFlag = typeof moderationFlag.$inferSelect;
+export const moderationActionRelations = relations(moderationAction, ({ one }) => ({
+	report: one(moderationReport, {
+		fields: [moderationAction.reportId],
+		references: [moderationReport.id],
+	}),
+	actionedBy: one(user, {
+		fields: [moderationAction.actionedBy],
+		references: [user.id],
+	}),
+}));
+
+export type NewModerationAction = typeof moderationAction.$inferInsert;
+export type ModerationAction = typeof moderationAction.$inferSelect;
