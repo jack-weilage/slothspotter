@@ -42,8 +42,9 @@ export const load: PageServerLoad = async ({ locals, platform }) => {
 		},
 		extras: {
 			uniqueSightings: sql<number>`(
-				SELECT count(DISTINCT ${schema.sighting.userId}) 
-				FROM ${schema.sighting} WHERE ${schema.sighting.slothId} = ${schema.sloth.id}
+				SELECT count(DISTINCT sighting.user_id)
+				FROM sighting
+				WHERE sighting.sloth_id = sloth.id
 			)`.as("unique_sightings"),
 		},
 		orderBy: asc(schema.sloth.createdAt),
