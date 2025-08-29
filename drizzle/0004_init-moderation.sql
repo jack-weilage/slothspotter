@@ -23,6 +23,7 @@ CREATE TABLE `moderation_report` (
 );
 --> statement-breakpoint
 CREATE INDEX `moderation_report_status_idx` ON `moderation_report` (`status`);--> statement-breakpoint
+DROP TABLE `moderation_flag`;--> statement-breakpoint
 DROP TABLE `spot`;--> statement-breakpoint
 PRAGMA foreign_keys=OFF;--> statement-breakpoint
 CREATE TABLE `__new_photo` (
@@ -72,4 +73,5 @@ INSERT INTO `__new_sloth`("id", "latitude", "longitude", "status", "created_at",
 DROP TABLE `sloth`;--> statement-breakpoint
 ALTER TABLE `__new_sloth` RENAME TO `sloth`;--> statement-breakpoint
 ALTER TABLE `user` ADD `role` text DEFAULT 'user' NOT NULL;--> statement-breakpoint
+ALTER TABLE `user` ADD `banned_until` integer;--> statement-breakpoint
 CREATE UNIQUE INDEX `user_provider_provider_id_idx` ON `user` (`provider`,`provider_id`);

@@ -1,11 +1,11 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "c068d315-6d11-4c9e-8539-9bef7fbe657b",
+  "id": "06f3902b-104d-421d-a26b-9d6fcdc6cd4e",
   "prevId": "2987a341-14e7-421e-afd6-6739d4956bad",
   "tables": {
-    "content_status": {
-      "name": "content_status",
+    "moderation_action": {
+      "name": "moderation_action",
       "columns": {
         "id": {
           "name": "id",
@@ -14,140 +14,32 @@
           "notNull": true,
           "autoincrement": false
         },
-        "content_type": {
-          "name": "content_type",
+        "report_id": {
+          "name": "report_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "content_id": {
-          "name": "content_id",
+        "actioned_by": {
+          "name": "actioned_by",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "status": {
-          "name": "status",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "'approved'"
-        },
-        "submitted_by": {
-          "name": "submitted_by",
+        "action_type": {
+          "name": "action_type",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "reviewed_by": {
-          "name": "reviewed_by",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "review_reason": {
-          "name": "review_reason",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "content_status_submitted_by_user_id_fk": {
-          "name": "content_status_submitted_by_user_id_fk",
-          "tableFrom": "content_status",
-          "tableTo": "user",
-          "columnsFrom": [
-            "submitted_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "content_status_reviewed_by_user_id_fk": {
-          "name": "content_status_reviewed_by_user_id_fk",
-          "tableFrom": "content_status",
-          "tableTo": "user",
-          "columnsFrom": [
-            "reviewed_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {}
-    },
-    "moderation_action_log": {
-      "name": "moderation_action_log",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "actor_id": {
-          "name": "actor_id",
+        "note": {
+          "name": "note",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false
-        },
-        "action": {
-          "name": "action",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "target_type": {
-          "name": "target_type",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "target_id": {
-          "name": "target_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "reason": {
-          "name": "reason",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
           "autoincrement": false
         },
         "created_at": {
@@ -160,17 +52,30 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "moderation_action_log_actor_id_user_id_fk": {
-          "name": "moderation_action_log_actor_id_user_id_fk",
-          "tableFrom": "moderation_action_log",
-          "tableTo": "user",
+        "moderation_action_report_id_moderation_report_id_fk": {
+          "name": "moderation_action_report_id_moderation_report_id_fk",
+          "tableFrom": "moderation_action",
+          "tableTo": "moderation_report",
           "columnsFrom": [
-            "actor_id"
+            "report_id"
           ],
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "moderation_action_actioned_by_user_id_fk": {
+          "name": "moderation_action_actioned_by_user_id_fk",
+          "tableFrom": "moderation_action",
+          "tableTo": "user",
+          "columnsFrom": [
+            "actioned_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
@@ -188,15 +93,15 @@
           "notNull": true,
           "autoincrement": false
         },
-        "content_type": {
-          "name": "content_type",
+        "content_id": {
+          "name": "content_id",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "content_id": {
-          "name": "content_id",
+        "content_type": {
+          "name": "content_type",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
@@ -216,8 +121,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "details": {
-          "name": "details",
+        "comment": {
+          "name": "comment",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -229,35 +134,7 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'pending'"
-        },
-        "verdict": {
-          "name": "verdict",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "moderated_by": {
-          "name": "moderated_by",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "moderation_notes": {
-          "name": "moderation_notes",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "resolved_at": {
-          "name": "resolved_at",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
+          "default": "'open'"
         },
         "created_at": {
           "name": "created_at",
@@ -274,7 +151,15 @@
           "autoincrement": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "moderation_report_status_idx": {
+          "name": "moderation_report_status_idx",
+          "columns": [
+            "status"
+          ],
+          "isUnique": false
+        }
+      },
       "foreignKeys": {
         "moderation_report_reported_by_user_id_fk": {
           "name": "moderation_report_reported_by_user_id_fk",
@@ -286,20 +171,7 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "moderation_report_moderated_by_user_id_fk": {
-          "name": "moderation_report_moderated_by_user_id_fk",
-          "tableFrom": "moderation_report",
-          "tableTo": "user",
-          "columnsFrom": [
-            "moderated_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
@@ -351,9 +223,31 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "photo_cloudflare_image_id_unique": {
+          "name": "photo_cloudflare_image_id_unique",
+          "columns": [
+            "cloudflare_image_id"
+          ],
+          "isUnique": true
+        },
+        "photo_sighting_id_idx": {
+          "name": "photo_sighting_id_idx",
+          "columns": [
+            "sighting_id"
+          ],
+          "isUnique": false
+        }
+      },
       "foreignKeys": {
         "photo_sighting_id_sighting_id_fk": {
           "name": "photo_sighting_id_sighting_id_fk",
@@ -365,7 +259,7 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
@@ -397,8 +291,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "sighting_type": {
-          "name": "sighting_type",
+        "sloth_status": {
+          "name": "sloth_status",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
@@ -417,9 +311,31 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "sighting_sloth_id_idx": {
+          "name": "sighting_sloth_id_idx",
+          "columns": [
+            "sloth_id"
+          ],
+          "isUnique": false
+        },
+        "sighting_user_id_idx": {
+          "name": "sighting_user_id_idx",
+          "columns": [
+            "user_id"
+          ],
+          "isUnique": false
+        }
+      },
       "foreignKeys": {
         "sighting_sloth_id_sloth_id_fk": {
           "name": "sighting_sloth_id_sloth_id_fk",
@@ -431,7 +347,7 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         },
         "sighting_user_id_user_id_fk": {
@@ -444,7 +360,7 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
@@ -484,20 +400,6 @@
           "autoincrement": false,
           "default": "'active'"
         },
-        "discovered_by": {
-          "name": "discovered_by",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "discovered_at": {
-          "name": "discovered_at",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
         "created_at": {
           "name": "created_at",
           "type": "integer",
@@ -514,88 +416,8 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {
-        "sloth_discovered_by_user_id_fk": {
-          "name": "sloth_discovered_by_user_id_fk",
-          "tableFrom": "sloth",
-          "tableTo": "user",
-          "columnsFrom": [
-            "discovered_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {}
-    },
-    "spot": {
-      "name": "spot",
-      "columns": {
-        "sloth_id": {
-          "name": "sloth_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "spotted_at": {
-          "name": "spotted_at",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "spot_sloth_id_sloth_id_fk": {
-          "name": "spot_sloth_id_sloth_id_fk",
-          "tableFrom": "spot",
-          "tableTo": "sloth",
-          "columnsFrom": [
-            "sloth_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "spot_user_id_user_id_fk": {
-          "name": "spot_user_id_user_id_fk",
-          "tableFrom": "spot",
-          "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {
-        "spot_sloth_id_user_id_pk": {
-          "columns": [
-            "sloth_id",
-            "user_id"
-          ],
-          "name": "spot_sloth_id_user_id_pk"
-        }
-      },
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
@@ -623,6 +445,14 @@
           "notNull": false,
           "autoincrement": false
         },
+        "role": {
+          "name": "role",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'user'"
+        },
         "provider": {
           "name": "provider",
           "type": "text",
@@ -636,14 +466,6 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
-        },
-        "role": {
-          "name": "role",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "'user'"
         },
         "banned_until": {
           "name": "banned_until",
@@ -667,7 +489,16 @@
           "autoincrement": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "user_provider_provider_id_idx": {
+          "name": "user_provider_provider_id_idx",
+          "columns": [
+            "provider",
+            "provider_id"
+          ],
+          "isUnique": true
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
