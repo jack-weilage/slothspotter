@@ -14,10 +14,12 @@
 
 	let {
 		open = $bindable(),
+		slothId,
 		submitSightingForm,
 		trigger,
 	}: {
 		open: boolean;
+		slothId: string;
 		submitSightingForm: SuperValidated<Infer<typeof SubmitSightingSchema>>;
 		trigger: Snippet<[{ props: Record<string, unknown> }]>;
 	} = $props();
@@ -48,7 +50,7 @@
 	<Dialog.Content class="max-w-lg">
 		<form
 			method="POST"
-			action="?/submitSighting"
+			action="/sloth/{slothId}?/submitSighting"
 			enctype="multipart/form-data"
 			use:enhance={{
 				onResult({ result }) {

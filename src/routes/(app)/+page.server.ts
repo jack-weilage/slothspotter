@@ -1,5 +1,6 @@
 import { ContentType, SlothStatus } from "$lib/client/db/schema";
 import { ReportContentSchema } from "$lib/components/dialogs/report-content";
+import { SubmitSightingSchema } from "$lib/components/dialogs/submit-sighting";
 import { SubmitSlothSchema } from "$lib/components/dialogs/submit-sloth";
 import { deleteImage, uploadImage } from "$lib/server/cloudflare/images";
 import { validateTurnstile } from "$lib/server/cloudflare/turnstile";
@@ -54,6 +55,7 @@ export const load: PageServerLoad = async ({ locals, platform }) => {
 		sloths,
 		user: locals.user,
 		submitSlothForm: await superValidate(arktype(SubmitSlothSchema)),
+		submitSightingForm: await superValidate(arktype(SubmitSightingSchema)),
 	};
 };
 

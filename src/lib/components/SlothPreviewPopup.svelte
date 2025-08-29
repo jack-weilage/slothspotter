@@ -1,12 +1,18 @@
 <script lang="ts">
 	import { getImageUrl } from "$lib/client/cloudflare/images";
 	import { SlothStatus } from "$lib/client/db/schema";
+	import {
+		SubmitSightingDialog,
+		SubmitSightingSchema,
+	} from "$lib/components/dialogs/submit-sighting";
 	import { Button } from "$lib/components/ui/button";
 	import SlothStatusBadge from "./SlothStatusBadge.svelte";
 	import "lquip/css";
+	import type { Infer, SuperValidated } from "sveltekit-superforms";
 
 	let {
 		sloth,
+		submitSightingForm,
 	}: {
 		sloth: {
 			id: string;
@@ -20,9 +26,11 @@
 			}[];
 			status: SlothStatus;
 		};
+		submitSightingForm: SuperValidated<Infer<typeof SubmitSightingSchema>>;
 	} = $props();
 
 	const primaryPhoto = $derived(sloth.sightings[0]?.photos[0]);
+	let submitSightingDialogOpen = $state(false);
 </script>
 
 <div class="w-full max-w-sm overflow-hidden rounded-xl bg-white shadow-lg">
@@ -54,7 +62,20 @@
 		</div>
 
 		<div class="mt-3 grid w-full grid-cols-2 gap-x-2">
-			<Button variant="secondary" size="sm">Spot It</Button>
+			<SubmitSightingDialog
+				bind:open={submitSightingDialogOpen}
+				{submitSightingForm}
+				slothId={sloth.id}
+			>
+				{#snippet trigger({ props })}
+					<Button
+						variant="secondary"
+						size="sm"
+						{...props}
+						onclick={() => (submitSightingDialogOpen = true)}>Spot It</Button
+					>
+				{/snippet}
+			</SubmitSightingDialog>
 			<Button href="/sloth/{sloth.id}" size="sm">View Details</Button>
 		</div>
 	</div>

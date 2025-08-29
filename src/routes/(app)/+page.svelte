@@ -41,7 +41,7 @@
 				color={sloth.status === SlothStatus.Active ? "#8B5A2B" : "#6B7280"}
 			>
 				<Map.Popup closeButton={false}>
-					<SlothPreviewPopup {sloth} />
+					<SlothPreviewPopup {sloth} submitSightingForm={data.submitSightingForm} />
 				</Map.Popup>
 			</Map.Marker>
 		{/each}

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { page } from "$app/state";
 	import { SlothStatus } from "$lib/client/db/schema";
 	import SEO from "$lib/components/SEO.svelte";
 	import SlothSighting from "$lib/components/SlothSighting.svelte";
@@ -154,6 +155,7 @@
 					{#if data.user}
 						<SubmitSightingDialog
 							bind:open={submitSightingDialogOpen}
+							slothId={page.params.id!}
 							submitSightingForm={data.submitSightingForm}
 							{trigger}
 						/>
