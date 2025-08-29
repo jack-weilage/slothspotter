@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { getImageUrl } from "$lib/client/cloudflare/images";
 	import { SlothStatus } from "$lib/client/db/schema";
+	import { LoginDialog } from "$lib/components/dialogs/login";
 	import {
 		SubmitSightingDialog,
 		SubmitSightingSchema,
@@ -13,6 +14,7 @@
 	let {
 		sloth,
 		submitSightingForm,
+		isLoggedIn,
 	}: {
 		sloth: {
 			id: string;
@@ -27,6 +29,7 @@
 			status: SlothStatus;
 		};
 		submitSightingForm: SuperValidated<Infer<typeof SubmitSightingSchema>>;
+		isLoggedIn: boolean;
 	} = $props();
 
 	const primaryPhoto = $derived(sloth.sightings[0]?.photos[0]);
@@ -62,20 +65,26 @@
 		</div>
 
 		<div class="mt-3 grid w-full grid-cols-2 gap-x-2">
-			<SubmitSightingDialog
-				bind:open={submitSightingDialogOpen}
-				{submitSightingForm}
-				slothId={sloth.id}
-			>
-				{#snippet trigger({ props })}
-					<Button
-						variant="secondary"
-						size="sm"
-						{...props}
-						onclick={() => (submitSightingDialogOpen = true)}>Spot It</Button
-					>
-				{/snippet}
-			</SubmitSightingDialog>
+			{#snippet trigger({ props }: { props: Record<string, unknown> })}
+				<Button
+					variant="secondary"
+					size="sm"
+					{...props}
+					onclick={() => (submitSightingDialogOpen = true)}>Spot It</Button
+				>
+			{/snippet}
+
+			{#if isLoggedIn}
+				<SubmitSightingDialog
+					bind:open={submitSightingDialogOpen}
+					{submitSightingForm}
+					slothId={sloth.id}
+					{trigger}
+				/>
+			{:else}
+				<LoginDialog bind:open={submitSightingDialogOpen} {trigger} />
+			{/if}
+
 			<Button href="/sloth/{sloth.id}" size="sm">View Details</Button>
 		</div>
 	</div>

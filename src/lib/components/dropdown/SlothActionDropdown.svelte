@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { ContentType, UserRole } from "$lib/client/db/schema";
+	import { LoginDialog } from "$lib/components/dialogs/login";
 	import { ReportContentDialog, ReportContentSchema } from "$lib/components/dialogs/report-content";
 	import { Button } from "$lib/components/ui/button";
 	import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
@@ -36,9 +37,13 @@
 	</DropdownMenu.Content>
 </DropdownMenu.Root>
 
-<ReportContentDialog
-	bind:open={reportContentDialogOpen}
-	{reportContentForm}
-	contentType={ContentType.Sloth}
-	contentId={slothId}
-/>
+{#if userRole}
+	<ReportContentDialog
+		bind:open={reportContentDialogOpen}
+		{reportContentForm}
+		contentType={ContentType.Sloth}
+		contentId={slothId}
+	/>
+{:else}
+	<LoginDialog bind:open={reportContentDialogOpen} />
+{/if}

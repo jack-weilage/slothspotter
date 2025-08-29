@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from "$app/forms";
-	import { ContentType } from "$lib/client/db/schema";
+	import { ContentType, UserRole } from "$lib/client/db/schema";
+	import { LoginDialog } from "$lib/components/dialogs/login";
 	import { ReportContentDialog, ReportContentSchema } from "$lib/components/dialogs/report-content";
 	import { Button } from "$lib/components/ui/button";
 	import * as Dialog from "$lib/components/ui/dialog";
@@ -9,10 +10,12 @@
 	import type { Infer, SuperValidated } from "sveltekit-superforms";
 
 	let {
+		userRole,
 		sightingId,
 		isOwned,
 		reportContentForm,
 	}: {
+		userRole: UserRole | undefined;
 		sightingId: string;
 		isOwned: boolean;
 		reportContentForm: SuperValidated<Infer<typeof ReportContentSchema>>;
@@ -42,12 +45,16 @@
 	{/if}
 </DropdownMenu.Root>
 
-<ReportContentDialog
-	bind:open={reportContentDialogOpen}
-	{reportContentForm}
-	contentType={ContentType.Sighting}
-	contentId={sightingId}
-/>
+{#if userRole}
+	<ReportContentDialog
+		bind:open={reportContentDialogOpen}
+		{reportContentForm}
+		contentType={ContentType.Sighting}
+		contentId={sightingId}
+	/>
+{:else}
+	<LoginDialog bind:open={reportContentDialogOpen} />
+{/if}
 
 <Dialog.Root bind:open={deleteSightingDialogOpen}>
 	<Dialog.Content>

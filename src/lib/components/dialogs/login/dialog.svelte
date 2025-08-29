@@ -9,7 +9,7 @@
 		trigger,
 	}: {
 		open: boolean;
-		trigger: Snippet<[{ props: Record<string, unknown> }]>;
+		trigger?: Snippet<[{ props: Record<string, unknown> }]>;
 	} = $props();
 </script>
 
