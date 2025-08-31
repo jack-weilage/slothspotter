@@ -3,7 +3,7 @@ import type { RequestHandler } from "./$types";
 import { redirect } from "@sveltejs/kit";
 import { generateState, generateCodeVerifier } from "arctic";
 
-export const GET: RequestHandler = async function GET({ cookies }) {
+export const GET: RequestHandler = async ({ cookies }) => {
 	const state = generateState();
 	const codeVerifier = generateCodeVerifier();
 	const url = google.createAuthorizationURL(state, codeVerifier, ["openid", "profile"]);

@@ -124,10 +124,6 @@
 	});
 
 	$effect(() => {
-		// color
-	});
-
-	$effect(() => {
 		// scale
 	});
 
