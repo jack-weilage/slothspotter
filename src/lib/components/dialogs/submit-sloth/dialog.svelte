@@ -77,9 +77,7 @@
 			action="/?/submitSloth"
 			enctype="multipart/form-data"
 			use:enhance={{
-				onSubmit: console.log,
 				onResult({ result }) {
-					console.log(result);
 					if (result.type === "success") {
 						currentStep = 1;
 						form.reset();
