@@ -24,11 +24,13 @@
 		open = $bindable(),
 		submitSlothForm,
 		initialLocation = [-122.478, 48.754],
+		oncomplete,
 		trigger,
 	}: {
 		open: boolean;
 		submitSlothForm: SuperValidated<Infer<typeof SubmitSlothSchema>>;
 		initialLocation?: maplibre.LngLatLike;
+		oncomplete?: (id: string) => void;
 		trigger: Snippet<[{ props: Record<string, unknown> }]>;
 	} = $props();
 
@@ -82,6 +84,7 @@
 						currentStep = 1;
 						form.reset();
 						open = false;
+						oncomplete?.(result.data?.slothId);
 					}
 				},
 			}}
