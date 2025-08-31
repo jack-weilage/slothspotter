@@ -1,8 +1,9 @@
 <script lang="ts">
-	import { enhance } from "$app/forms";
+	import UserAvatar from "$lib/components/UserAvatar.svelte";
 	import { LoginDialog } from "$lib/components/dialogs/login";
-	import * as Avatar from "$lib/components/ui/avatar";
 	import { Button } from "$lib/components/ui/button";
+	import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
+	import LogoutIcon from "@lucide/svelte/icons/log-out";
 
 	let { children, data } = $props();
 
@@ -13,25 +14,21 @@
 	<h1 class="text-xl font-bold text-gray-900">SlothSpotter</h1>
 
 	{#if data.user}
-		<div class="flex items-center gap-3">
-			<div class="flex items-center gap-2">
-				<Avatar.Root>
-					<Avatar.Image src={data.user.avatarUrl} alt="{data.user.displayName}'s avatar'" />
-					<Avatar.Fallback>
-						{data.user.displayName
-							.split(" ")
-							.slice(0, 2)
-							.map((s) => s[0].toLocaleUpperCase())
-							.join("")}
-					</Avatar.Fallback>
-				</Avatar.Root>
-
-				<span class="text-sm font-medium text-gray-700">{data.user.displayName}</span>
-			</div>
-			<form use:enhance method="POST" action="/auth/logout">
-				<Button variant="ghost" size="sm" type="submit">Log out</Button>
-			</form>
-		</div>
+		<DropdownMenu.DropdownMenu>
+			<DropdownMenu.Trigger aria-label="Open user menu">
+				<UserAvatar user={data.user} class="size-9 border" />
+			</DropdownMenu.Trigger>
+			<DropdownMenu.Content>
+				<DropdownMenu.Item class="justify-between">
+					{#snippet child({ props })}
+						<a href="/auth/logout" {...props}>
+							Log out
+							<LogoutIcon />
+						</a>
+					{/snippet}
+				</DropdownMenu.Item>
+			</DropdownMenu.Content>
+		</DropdownMenu.DropdownMenu>
 	{:else}
 		<LoginDialog bind:open={loginOpen}>
 			{#snippet trigger({ props })}
