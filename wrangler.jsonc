@@ -31,4 +31,7 @@
 			"id": "ff90adefb76b43178f8293f15a4eab64",
 		},
 	],
+	"images": {
+		"binding": "IMAGES",
+	},
 }

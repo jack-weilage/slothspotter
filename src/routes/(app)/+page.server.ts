@@ -13,7 +13,8 @@ import { asc, eq, sql } from "drizzle-orm";
 import { setError, superValidate } from "sveltekit-superforms";
 import { arktype } from "sveltekit-superforms/adapters";
 
-export const load: PageServerLoad = async ({ locals, platform }) => {
+export const load: PageServerLoad = async ({ depends, locals, platform }) => {
+	depends("data:sloths");
 	const db = connect(platform!.env.DB);
 
 	const sloths = await db.query.sloth.findMany({
@@ -26,7 +27,9 @@ export const load: PageServerLoad = async ({ locals, platform }) => {
 		with: {
 			sightings: {
 				limit: 1,
-				columns: {},
+				columns: {
+					createdAt: true,
+				},
 				orderBy: asc(schema.sighting.createdAt),
 				with: {
 					photos: {
@@ -137,6 +140,10 @@ export const actions: Actions = {
 						: "Failed to upload photos. Please try again.",
 			});
 		}
+
+		return {
+			slothId,
+		};
 	},
 	reportContent: async ({ request, locals, getClientAddress, platform }) => {
 		if (!locals.user) {

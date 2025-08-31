@@ -24,11 +24,13 @@
 		open = $bindable(),
 		submitSlothForm,
 		initialLocation = [-122.478, 48.754],
+		oncomplete,
 		trigger,
 	}: {
 		open: boolean;
 		submitSlothForm: SuperValidated<Infer<typeof SubmitSlothSchema>>;
 		initialLocation?: maplibre.LngLatLike;
+		oncomplete?: (id: string) => void;
 		trigger: Snippet<[{ props: Record<string, unknown> }]>;
 	} = $props();
 
@@ -64,7 +66,7 @@
 
 <Dialog.Root bind:open>
 	<Dialog.Trigger child={trigger} />
-	<Dialog.Content class="w-full max-w-2xl">
+	<Dialog.Content class="max-h-[100dvh] w-full max-w-2xl overflow-y-auto">
 		<Dialog.Header>
 			<Dialog.Title>Report a Sloth - Step {currentStep} of {totalSteps}</Dialog.Title>
 			<div class="mt-2">
@@ -82,6 +84,7 @@
 						currentStep = 1;
 						form.reset();
 						open = false;
+						oncomplete?.(result.data?.slothId);
 					}
 				},
 			}}
@@ -142,6 +145,10 @@
 						onclick={handleMapClick}
 					>
 						<Map.Control position="top-right" control={new maplibre.NavigationControl()} />
+						<Map.Control
+							position="top-right"
+							control={new maplibre.GeolocateControl({ trackUserLocation: true })}
+						/>
 						{#if $formData.longitude && $formData.latitude}
 							<Map.Marker lngLat={[$formData.longitude, $formData.latitude]} color="#D97706" />
 						{/if}
@@ -238,9 +245,6 @@
 										/>
 									</Map.Root>
 								</div>
-								<p class="mt-1 text-xs text-gray-500">
-									{$formData.latitude.toFixed(6)}, {$formData.longitude.toFixed(6)}
-								</p>
 							</div>
 						{/if}
 

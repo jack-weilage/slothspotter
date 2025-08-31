@@ -12,6 +12,9 @@ declare global {
 			env: Env;
 		}
 	}
+	interface Window {
+		turnstile: Turnstile.Turnstile;
+	}
 }
 // interface Error {}
 // interface Locals {}

@@ -30,7 +30,7 @@
 		 * The widget size. Can be 'normal', 'flexible', 'invisible', or 'compact'.
 		 * @default "normal"
 		 */
-		size?: "normal" | "flexible" | "invisible" | "compact";
+		size?: Turnstile.WidgetSize;
 		/**
 		 * The widget theme. Can be `"light"`, `"dark"`, or `"auto"`.
 		 */
@@ -57,6 +57,8 @@
 		let id = window.turnstile.render(container, params);
 
 		return () => {
+			if (!id) return;
+
 			window.turnstile.remove(id);
 		};
 	});

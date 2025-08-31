@@ -18,9 +18,9 @@ export async function validateTurnstile(
 		const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
 			method: "POST",
 			headers: {
-				"Content-Type": "application/x-www-form-urlencoded",
+				"Content-Type": "application/json",
 			},
-			body: new URLSearchParams({
+			body: JSON.stringify({
 				secret: CLOUDFLARE_TURNSTILE_SECRET_KEY,
 				response: token,
 				remoteip: remoteip || "",
