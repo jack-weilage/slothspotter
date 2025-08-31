@@ -30,6 +30,12 @@ export const GET: RequestHandler = async ({ platform }) => {
 			changefreq: "daily",
 			priority: "1.0",
 		},
+		{
+			url: `${PUBLIC_ORIGIN}/privacy`,
+			lastmod: new Date().toISOString().split("T")[0],
+			changefreq: "monthly",
+			priority: "0.5",
+		},
 	];
 
 	const dynamicRoutes = sloths.map((sloth) => ({
