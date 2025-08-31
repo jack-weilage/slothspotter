@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { goto, invalidate } from "$app/navigation";
+	import { page } from "$app/state";
 	import { SlothStatus } from "$lib/client/db/schema";
 	import SEO from "$lib/components/SEO.svelte";
 	import SelectedSlothPanel from "$lib/components/SelectedSlothPanel.svelte";
@@ -7,7 +9,6 @@
 	import * as Map from "$lib/components/map";
 	import { Button } from "$lib/components/ui/button";
 	import * as Drawer from "$lib/components/ui/drawer";
-	import type { PageData } from "./$types";
 	import PlusIcon from "@lucide/svelte/icons/plus";
 	import maplibre from "maplibre-gl";
 	import { MediaQuery } from "svelte/reactivity";
@@ -18,7 +19,19 @@
 	const BELLINGHAM_COORDINATES: maplibre.LngLatLike = [-122.478, 48.754];
 
 	let submitSlothDialogOpen = $state(false);
-	let selectedSloth: PageData["sloths"][number] | null = $state(null);
+	let selectedSloth = $derived(
+		data.sloths.find((s) => s.id === page.url.searchParams.get("selected")) ?? null,
+	);
+
+	function setSelected(id: string | null) {
+		if (id) {
+			page.url.searchParams.set("selected", id);
+		} else {
+			page.url.searchParams.delete("selected");
+		}
+
+		goto(page.url, { replaceState: true, keepFocus: true, noScroll: true });
+	}
 	const isDesktop = new MediaQuery("(min-width: 768px)");
 </script>
 
@@ -41,7 +54,7 @@
 				/>
 			</div>
 		{:else}
-			<Drawer.Root open onClose={() => (selectedSloth = null)}>
+			<Drawer.Root open onClose={() => setSelected(null)}>
 				<Drawer.Content>
 					<SelectedSlothPanel
 						sloth={selectedSloth}
@@ -53,7 +66,7 @@
 		{/if}
 	{/if}
 	<Map.Root
-		onclick={() => (selectedSloth = null)}
+		onclick={() => setSelected(null)}
 		style="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
 		attributionControl={false}
 		center={BELLINGHAM_COORDINATES}
@@ -69,10 +82,14 @@
 		{#each data.sloths as sloth (sloth.id)}
 			<Map.Marker
 				lngLat={[sloth.longitude, sloth.latitude]}
-				color={sloth.status === SlothStatus.Active ? "#8B5A2B" : "#6B7280"}
+				color={selectedSloth?.id === sloth.id
+					? "#F59E0B"
+					: sloth.status === SlothStatus.Active
+						? "#8B5A2B"
+						: "#6B7280"}
 				onclick={(e) => {
 					e.stopPropagation();
-					selectedSloth = sloth;
+					setSelected(sloth.id);
 				}}
 			/>
 		{/each}
@@ -94,6 +111,10 @@
 		<SubmitSlothDialog
 			submitSlothForm={data.submitSlothForm}
 			bind:open={submitSlothDialogOpen}
+			oncomplete={(id) => {
+				setSelected(id);
+				invalidate("data:sloths");
+			}}
 			{trigger}
 		/>
 	{:else}
