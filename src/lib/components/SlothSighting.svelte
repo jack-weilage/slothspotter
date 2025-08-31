@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { getImageUrl } from "$lib/client/cloudflare/images";
 	import type { SlothStatus } from "$lib/client/db/schema";
+	import UserAvatar from "$lib/components/UserAvatar.svelte";
 	import type { ReportContentSchema } from "$lib/components/dialogs/report-content";
-	import * as Avatar from "$lib/components/ui/avatar";
 	import * as Card from "$lib/components/ui/card";
 	import SlothStatusBadge from "./SlothStatusBadge.svelte";
 	import SightingActionDropdown from "./dropdown/SightingActionDropdown.svelte";
@@ -36,23 +36,11 @@
 
 		reportContentForm: SuperValidated<Infer<typeof ReportContentSchema>>;
 	} = $props();
-
-	function getUserInitials(displayName: string): string {
-		return displayName
-			.split(" ")
-			.slice(0, 2)
-			.map((name) => name.charAt(0))
-			.join("")
-			.toUpperCase();
-	}
 </script>
 
 <Card.Root>
 	<Card.Header class="flex items-center gap-3 pb-3">
-		<Avatar.Root class="h-10 w-10">
-			<Avatar.Image src={sighting.sightedBy.avatarUrl} />
-			<Avatar.Fallback>{getUserInitials(sighting.sightedBy.displayName)}</Avatar.Fallback>
-		</Avatar.Root>
+		<UserAvatar user={sighting.sightedBy} class="size-10" />
 		<div class="min-w-0 flex-1">
 			<div class="flex items-center justify-between gap-2">
 				<h3 class="truncate font-semibold text-gray-900 dark:text-gray-100">

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { enhance } from "$app/forms";
-	import * as Avatar from "$lib/components/ui/avatar";
+	import UserAvatar from "$lib/components/UserAvatar.svelte";
 	import { Badge } from "$lib/components/ui/badge";
 	import { Button } from "$lib/components/ui/button";
 	import type { ParsedReport } from "./+page.server";
@@ -70,19 +70,13 @@
 		</div>
 
 		<div class="flex items-center gap-3 rounded-lg bg-gray-50 p-3">
-			<Avatar.Root class="size-10">
-				<Avatar.Image
-					src={report.reportedBy?.avatarUrl}
-					alt="{report.reportedBy?.displayName}'s avatar'"
-				/>
-				<Avatar.Fallback>
-					{report.reportedBy?.displayName
-						?.split(" ")
-						.slice(0, 2)
-						.map((s) => s[0]?.toUpperCase())
-						.join("") || "?"}
-				</Avatar.Fallback>
-			</Avatar.Root>
+			<UserAvatar
+				class="size-10"
+				user={{
+					displayName: report.reportedBy?.displayName ?? "?",
+					avatarUrl: report.reportedBy?.avatarUrl ?? null,
+				}}
+			/>
 			<div>
 				<p class="text-sm font-medium text-gray-900">
 					Reported by {report.reportedBy?.displayName || "Unknown User"}

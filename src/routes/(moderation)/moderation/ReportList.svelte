@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { ContentType } from "$lib/client/db/schema";
-	import * as Avatar from "$lib/components/ui/avatar";
+	import UserAvatar from "$lib/components/UserAvatar.svelte";
 	import { Badge } from "$lib/components/ui/badge";
 	import type { ParsedReport } from "./+page.server";
 
@@ -55,19 +55,13 @@
 		>
 			<div class="flex gap-3">
 				<!-- Reporter Avatar -->
-				<Avatar.Root class="size-8">
-					<Avatar.Image
-						src={report.reportedBy?.avatarUrl}
-						alt="{report.reportedBy?.displayName}'s avatar'"
-					/>
-					<Avatar.Fallback class="text-xs">
-						{report.reportedBy?.displayName
-							?.split(" ")
-							.slice(0, 2)
-							.map((s) => s[0]?.toUpperCase())
-							.join("") || "?"}
-					</Avatar.Fallback>
-				</Avatar.Root>
+				<UserAvatar
+					class="size-8"
+					user={{
+						displayName: report.reportedBy?.displayName ?? "?",
+						avatarUrl: report.reportedBy?.avatarUrl ?? null,
+					}}
+				/>
 
 				<div class="w-full">
 					<!-- Header with content type and time -->
