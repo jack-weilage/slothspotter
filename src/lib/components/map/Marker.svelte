@@ -20,6 +20,7 @@
 		ondrag?: maplibre.Listener;
 		ondragstart?: maplibre.Listener;
 		ondragend?: maplibre.Listener;
+		onclick?: (e: MouseEvent) => void;
 
 		children?: Snippet;
 	}
@@ -41,6 +42,7 @@
 		ondragstart,
 		ondrag,
 		ondragend,
+		onclick,
 
 		children,
 
@@ -89,6 +91,19 @@
 	$effect(() => resetEventListener(marker, "dragstart", ondragstart));
 	$effect(() => resetEventListener(marker, "drag", ondrag));
 	$effect(() => resetEventListener(marker, "dragend", ondragend));
+	$effect(() => {
+		if (onclick) {
+			marker?.getElement().addEventListener("click", onclick);
+		}
+
+		const prevListener = onclick;
+
+		return () => {
+			if (prevListener) {
+				marker?.getElement().removeEventListener("click", prevListener);
+			}
+		};
+	});
 
 	$effect(() => {
 		marker?.setLngLat(lngLat);
