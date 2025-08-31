@@ -26,7 +26,9 @@ export const load: PageServerLoad = async ({ locals, platform }) => {
 		with: {
 			sightings: {
 				limit: 1,
-				columns: {},
+				columns: {
+					createdAt: true,
+				},
 				orderBy: asc(schema.sighting.createdAt),
 				with: {
 					photos: {

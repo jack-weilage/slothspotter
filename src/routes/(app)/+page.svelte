@@ -1,19 +1,25 @@
 <script lang="ts">
 	import { SlothStatus } from "$lib/client/db/schema";
 	import SEO from "$lib/components/SEO.svelte";
-	import SlothPreviewPopup from "$lib/components/SlothPreviewPopup.svelte";
+	import SelectedSlothPanel from "$lib/components/SelectedSlothPanel.svelte";
 	import { LoginDialog } from "$lib/components/dialogs/login";
 	import { SubmitSlothDialog } from "$lib/components/dialogs/submit-sloth";
 	import * as Map from "$lib/components/map";
 	import { Button } from "$lib/components/ui/button";
+	import * as Drawer from "$lib/components/ui/drawer";
+	import type { PageData } from "./$types";
 	import PlusIcon from "@lucide/svelte/icons/plus";
 	import maplibre from "maplibre-gl";
+	import { MediaQuery } from "svelte/reactivity";
+	import { fly } from "svelte/transition";
 
 	let { data } = $props();
 
 	const BELLINGHAM_COORDINATES: maplibre.LngLatLike = [-122.478, 48.754];
 
 	let submitSlothDialogOpen = $state(false);
+	let selectedSloth: PageData["sloths"][number] | null = $state(null);
+	const isDesktop = new MediaQuery("(min-width: 768px)");
 </script>
 
 <SEO
@@ -21,8 +27,33 @@
 	description="Discover and report stuffed sloth sightings around Bellingham, Washington. Join the community tracking these delightful creatures across the city."
 />
 
-<div class="relative h-[calc(100dvh-4rem)]">
+<div class="relative flex h-[calc(100dvh-4rem)] flex-row">
+	{#if !!selectedSloth}
+		{#if isDesktop.current}
+			<div
+				transition:fly={{ x: -300, duration: 300 }}
+				class="absolute top-0 bottom-0 left-0 z-10 h-full w-full max-w-100"
+			>
+				<SelectedSlothPanel
+					sloth={selectedSloth}
+					submitSightingForm={data.submitSightingForm}
+					isLoggedIn={!!data.user}
+				/>
+			</div>
+		{:else}
+			<Drawer.Root open onClose={() => (selectedSloth = null)}>
+				<Drawer.Content>
+					<SelectedSlothPanel
+						sloth={selectedSloth}
+						submitSightingForm={data.submitSightingForm}
+						isLoggedIn={!!data.user}
+					/>
+				</Drawer.Content>
+			</Drawer.Root>
+		{/if}
+	{/if}
 	<Map.Root
+		onclick={() => (selectedSloth = null)}
 		style="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
 		attributionControl={false}
 		center={BELLINGHAM_COORDINATES}
@@ -39,15 +70,11 @@
 			<Map.Marker
 				lngLat={[sloth.longitude, sloth.latitude]}
 				color={sloth.status === SlothStatus.Active ? "#8B5A2B" : "#6B7280"}
-			>
-				<Map.Popup closeButton={false}>
-					<SlothPreviewPopup
-						{sloth}
-						submitSightingForm={data.submitSightingForm}
-						isLoggedIn={!!data.user}
-					/>
-				</Map.Popup>
-			</Map.Marker>
+				onclick={(e) => {
+					e.stopPropagation();
+					selectedSloth = sloth;
+				}}
+			/>
 		{/each}
 	</Map.Root>
 
@@ -63,7 +90,6 @@
 		</Button>
 	{/snippet}
 
-	<!-- Floating Action Button for Report Sloth -->
 	{#if data.user}
 		<SubmitSlothDialog
 			submitSlothForm={data.submitSlothForm}
