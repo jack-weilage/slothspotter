@@ -31,7 +31,7 @@
 	{#if !!selectedSloth}
 		{#if isDesktop.current}
 			<div
-				transition:fly={{ x: -300, duration: 300 }}
+				transition:fly|global={{ x: -300, duration: 300 }}
 				class="absolute top-0 bottom-0 left-0 z-10 h-full w-full max-w-100"
 			>
 				<SelectedSlothPanel
