@@ -7,10 +7,10 @@
 	import { LoginDialog } from "$lib/components/dialogs/login/index.js";
 	import { SubmitSightingDialog } from "$lib/components/dialogs/submit-sighting";
 	import SlothActionDropdown from "$lib/components/dropdown/SlothActionDropdown.svelte";
+	import * as Map from "$lib/components/map";
 	import { Button } from "$lib/components/ui/button";
 	import CalendarIcon from "@lucide/svelte/icons/calendar";
 	import CameraIcon from "@lucide/svelte/icons/camera";
-	import MapPinIcon from "@lucide/svelte/icons/map-pin";
 	import PlusIcon from "@lucide/svelte/icons/plus";
 	import UsersIcon from "@lucide/svelte/icons/users";
 
@@ -125,13 +125,19 @@
 					</div>
 				</div>
 
-				<div class="flex items-center gap-2 rounded-lg bg-blue-50 p-4">
-					<MapPinIcon class="h-5 w-5 text-blue-600" />
-					<div>
-						<div class="font-medium text-blue-900">Location</div>
-						<div class="text-sm text-blue-700">
-							{data.sloth.latitude.toFixed(6)}, {data.sloth.longitude.toFixed(6)}
-						</div>
+				<div class="space-y-2">
+					<div class="font-medium text-gray-900">Location</div>
+					<div class="h-64 overflow-hidden rounded-lg border">
+						<Map.Root
+							style="https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json"
+							validateStyle={false}
+							attributionControl={false}
+							center={[data.sloth.longitude, data.sloth.latitude]}
+							zoom={16}
+							interactive={false}
+						>
+							<Map.Marker lngLat={[data.sloth.longitude, data.sloth.latitude]} color="#D97706" />
+						</Map.Root>
 					</div>
 				</div>
 			</div>
