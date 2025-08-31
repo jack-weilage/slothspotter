@@ -72,14 +72,12 @@
 			</div>
 		{/if}
 
-		<!-- Green bar after the photo -->
 		<div class="flex items-center justify-between bg-green-800 px-4 py-3">
 			<h3 class="font-semibold text-gray-100">Sloth #{sloth.id.slice(-6)}</h3>
 			<SlothStatusBadge status={sloth.status} />
 		</div>
 
 		<div class="space-y-3 p-4 text-sm text-gray-700">
-			<!-- Quick action icons under the green bar -->
 			<div class="grid grid-cols-4 place-items-center gap-2">
 				<Button
 					variant="ghost"
@@ -107,11 +105,10 @@
 								// fallthrough to copy
 							}
 						}
-						try {
-							await navigator.clipboard.writeText(url);
-							justCopied = true;
-							setTimeout(() => (justCopied = false), 1500);
-						} catch {}
+
+						await navigator.clipboard.writeText(url);
+						justCopied = true;
+						setTimeout(() => (justCopied = false), 1500);
 					}}
 					aria-label={justCopied ? "Link copied" : "Share"}
 					title={justCopied ? "Link copied" : "Share"}
@@ -140,13 +137,11 @@
 						aria-label="Report sighting"
 						title="Report sighting"
 					>
-						<!-- Camera icon for reporting/spotting -->
 						<CameraIcon />
 						<span class="text-[10px] leading-tight">Report</span>
 					</Button>
 				{/snippet}
 
-				<!-- Submit sighting dialog wiring (inside grid to share snippet scope) -->
 				{#if isLoggedIn}
 					<SubmitSightingDialog
 						bind:open={submitSightingDialogOpen}
@@ -172,8 +167,6 @@
 					<p class="mt-1 text-base font-semibold">{firstSpotted || "—"}</p>
 				</div>
 			</div>
-
-			<!-- Coordinates preview removed per design request -->
 		</div>
 	</div>
 </div>

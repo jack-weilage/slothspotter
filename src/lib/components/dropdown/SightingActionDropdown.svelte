@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { enhance } from "$app/forms";
-	import { ContentType, UserRole } from "$lib/client/db/schema";
+	import { ContentType } from "$lib/client/db/schema";
 	import { LoginDialog } from "$lib/components/dialogs/login";
 	import { ReportContentDialog, ReportContentSchema } from "$lib/components/dialogs/report-content";
 	import { Button } from "$lib/components/ui/button";
