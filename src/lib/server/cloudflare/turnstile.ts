@@ -28,7 +28,7 @@ export async function validateTurnstile(
 		});
 
 		if (!response.ok) {
-			console.error("Turnstile validation failed with HTTP status:", response.status);
+			console.error("Turnstile validation failed with response:", await response.text());
 			return false;
 		}
 
