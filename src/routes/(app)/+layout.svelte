@@ -10,7 +10,7 @@
 	let loginOpen = $state(false);
 </script>
 
-<header class="flex items-center justify-between bg-white p-4 shadow-sm">
+<header class="flex h-[4rem] items-center justify-between bg-white p-4 shadow-sm">
 	<h1 class="text-xl font-bold text-gray-900">SlothSpotter</h1>
 
 	{#if data.user}
