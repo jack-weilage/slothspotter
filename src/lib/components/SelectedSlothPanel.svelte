@@ -82,7 +82,7 @@
 				<Button
 					variant="ghost"
 					class="h-auto flex-col gap-1 py-2"
-					href={`https://www.google.com/maps/dir/?api=1&destination=${sloth.latitude},${sloth.longitude}`}
+					href="https://www.google.com/maps/dir/?api=1&destination={sloth.latitude},{sloth.longitude}"
 					target="_blank"
 					rel="noopener noreferrer"
 					aria-label="Directions"
