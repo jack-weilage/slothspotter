@@ -1,9 +1,6 @@
 node_modules
 
 # Output
-.output
-.vercel
-.netlify
 .wrangler
 /.svelte-kit
 /build
@@ -22,8 +19,8 @@ Thumbs.db
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
-# SQLite
-*.db
+# Caches
+.eslintcache
 
 # AI
 /.claude
