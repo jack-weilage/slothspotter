@@ -4,6 +4,7 @@
 	import { SlothStatus } from "$lib/client/db/schema";
 	import SEO from "$lib/components/SEO.svelte";
 	import SelectedSlothPanel from "$lib/components/SelectedSlothPanel.svelte";
+	import { AboutDialog } from "$lib/components/dialogs/about";
 	import { LoginDialog } from "$lib/components/dialogs/login";
 	import { SubmitSlothDialog } from "$lib/components/dialogs/submit-sloth";
 	import * as Map from "$lib/components/map";
@@ -73,6 +74,10 @@
 		zoom={13}
 		minZoom={11}
 	>
+		<Map.Control position="top-right">
+			<AboutDialog />
+		</Map.Control>
+
 		<Map.Control position="top-right" control={new maplibre.NavigationControl()} />
 		<Map.Control
 			position="top-right"

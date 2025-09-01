@@ -24,10 +24,17 @@
 		</Dialog.Header>
 
 		<div>
-			<Button href="/auth/login/google" class="w-full">
+			<Button variant="outline" href="/auth/login/google" class="w-full">
 				<GoogleIcon class="size-5" />
 				Log in with Google
 			</Button>
 		</div>
+
+		<p class="text-sm text-muted-foreground">
+			By using SlothSpotter, you agree to our
+			<a href="/privacy" class="text-primary underline underline-offset-4 hover:no-underline">
+				Privacy Policy
+			</a>.
+		</p>
 	</Dialog.Content>
 </Dialog.Root>
