@@ -1,11 +1,14 @@
 <script lang="ts">
 	import { getImageUrl } from "$lib/client/cloudflare/images";
-	import type { SlothStatus } from "$lib/client/db/schema";
+	import { ContentType, type SlothStatus } from "$lib/client/db/schema";
+	import {
+		DeleteSightingActionButton,
+		ReportContentActionButton,
+	} from "$lib/components/action-button";
 	import UserAvatar from "$lib/components/UserAvatar.svelte";
 	import type { ReportContentSchema } from "$lib/components/dialogs/report-content";
 	import * as Card from "$lib/components/ui/card";
 	import SlothStatusBadge from "./SlothStatusBadge.svelte";
-	import SightingActionDropdown from "./dropdown/SightingActionDropdown.svelte";
 	import "lquip/css";
 	import type { Infer, SuperValidated } from "sveltekit-superforms";
 
@@ -63,7 +66,17 @@
 		</div>
 
 		<SlothStatusBadge status={sighting.slothStatus} />
-		<SightingActionDropdown sightingId={sighting.id} {isOwned} {reportContentForm} {isLoggedIn} />
+		<div class="flex items-center gap-2">
+			<ReportContentActionButton
+				contentType={ContentType.Sighting}
+				contentId={sighting.id}
+				{reportContentForm}
+				{isLoggedIn}
+			/>
+			{#if isOwned}
+				<DeleteSightingActionButton sightingId={sighting.id} />
+			{/if}
+		</div>
 	</Card.Header>
 	<Card.Content class="space-y-3">
 		{#if sighting.photos.length > 0}
