@@ -2,16 +2,18 @@
 	import { getImageUrl } from "$lib/client/cloudflare/images";
 	import { SlothStatus } from "$lib/client/db/schema";
 	import SlothStatusBadge from "$lib/components/SlothStatusBadge.svelte";
+	import {
+		AddSightingActionButton,
+		DirectionsActionButton,
+		ShareActionButton,
+		SlothActionButton,
+	} from "$lib/components/action-button";
 	import { LoginDialog } from "$lib/components/dialogs/login";
 	import {
 		SubmitSightingDialog,
 		SubmitSightingSchema,
 	} from "$lib/components/dialogs/submit-sighting";
-	import { Button } from "$lib/components/ui/button";
-	import CameraIcon from "@lucide/svelte/icons/camera";
 	import ExternalLinkIcon from "@lucide/svelte/icons/external-link";
-	import NavigationIcon from "@lucide/svelte/icons/navigation";
-	import ShareIcon from "@lucide/svelte/icons/share-2";
 	import "lquip/css";
 	import type { Infer, SuperValidated } from "sveltekit-superforms";
 
@@ -44,7 +46,6 @@
 	);
 	const firstSpotted = $derived(formatFirstSpotted(sloth.sightings[0]?.createdAt));
 	let submitSightingDialogOpen = $state(false);
-	let justCopied = $state(false);
 
 	function formatFirstSpotted(createdAt: Date | string | undefined): string | undefined {
 		if (!createdAt) return undefined;
@@ -79,67 +80,23 @@
 
 		<div class="space-y-3 p-4 text-sm text-gray-700">
 			<div class="grid grid-cols-4 place-items-center gap-2">
-				<Button
-					variant="ghost"
-					class="h-auto flex-col gap-1 py-2"
-					href="https://www.google.com/maps/dir/?api=1&destination={sloth.latitude},{sloth.longitude}"
-					target="_blank"
-					rel="noopener noreferrer"
-					aria-label="Directions"
-					title="Directions"
-				>
-					<NavigationIcon />
-					<span class="text-[10px] leading-tight">Directions</span>
-				</Button>
+				<DirectionsActionButton latitude={sloth.latitude} longitude={sloth.longitude} />
 
-				<Button
-					variant="ghost"
-					class="h-auto flex-col gap-1 py-2"
-					onclick={async () => {
-						const url = `${window.location.origin}/sloth/${sloth.id}`;
-						if (navigator.share) {
-							try {
-								await navigator.share({ url, title: `Sloth #${sloth.id.slice(-6)}` });
-								return;
-							} catch {
-								// fallthrough to copy
-							}
-						}
+				<ShareActionButton slothId={sloth.id} />
 
-						await navigator.clipboard.writeText(url);
-						justCopied = true;
-						setTimeout(() => (justCopied = false), 1500);
-					}}
-					aria-label={justCopied ? "Link copied" : "Share"}
-					title={justCopied ? "Link copied" : "Share"}
-				>
-					<ShareIcon />
-					<span class="text-[10px] leading-tight">Share</span>
-				</Button>
-
-				<Button
-					variant="ghost"
-					class="h-auto flex-col gap-1 py-2"
+				<SlothActionButton
 					href="/sloth/{sloth.id}"
 					aria-label="View details"
 					title="View details"
+					label="Details"
 				>
-					<ExternalLinkIcon />
-					<span class="text-[10px] leading-tight">Details</span>
-				</Button>
+					{#snippet icon()}
+						<ExternalLinkIcon />
+					{/snippet}
+				</SlothActionButton>
 
 				{#snippet trigger({ props }: { props: Record<string, unknown> })}
-					<Button
-						variant="ghost"
-						class="h-auto flex-col gap-1 py-2"
-						{...props}
-						onclick={() => (submitSightingDialogOpen = true)}
-						aria-label="Report sighting"
-						title="Report sighting"
-					>
-						<CameraIcon />
-						<span class="text-[10px] leading-tight">Report</span>
-					</Button>
+					<AddSightingActionButton {...props} onclick={() => (submitSightingDialogOpen = true)} />
 				{/snippet}
 
 				{#if isLoggedIn}

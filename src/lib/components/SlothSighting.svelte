@@ -1,11 +1,13 @@
 <script lang="ts">
 	import { getImageUrl } from "$lib/client/cloudflare/images";
-	import type { SlothStatus } from "$lib/client/db/schema";
+	import { ContentType, type SlothStatus } from "$lib/client/db/schema";
 	import UserAvatar from "$lib/components/UserAvatar.svelte";
+	import {
+		DeleteSightingActionButton,
+		ReportContentActionButton,
+	} from "$lib/components/action-button";
 	import type { ReportContentSchema } from "$lib/components/dialogs/report-content";
-	import * as Card from "$lib/components/ui/card";
 	import SlothStatusBadge from "./SlothStatusBadge.svelte";
-	import SightingActionDropdown from "./dropdown/SightingActionDropdown.svelte";
 	import "lquip/css";
 	import type { Infer, SuperValidated } from "sveltekit-superforms";
 
@@ -38,51 +40,63 @@
 	} = $props();
 </script>
 
-<Card.Root>
-	<Card.Header class="flex items-center gap-3 pb-3">
-		<UserAvatar user={sighting.sightedBy} class="size-10" />
-		<div class="min-w-0 flex-1">
-			<div class="flex items-center justify-between gap-2">
+<div>
+	<div class="flex flex-wrap justify-between gap-3 pb-3">
+		<div class="flex flex-row items-center gap-x-3">
+			<UserAvatar user={sighting.sightedBy} class="size-10" />
+
+			<div>
 				<h3 class="truncate font-semibold text-gray-900 dark:text-gray-100">
 					{sighting.sightedBy.displayName}
 				</h3>
+				<time
+					class="text-sm text-gray-500 dark:text-gray-400"
+					datetime={sighting.createdAt.toISOString()}
+				>
+					{sighting.createdAt.toLocaleDateString("en-US", {
+						year: "numeric",
+						month: "short",
+						day: "numeric",
+					})}
+				</time>
 			</div>
-
-			<time
-				class="text-sm text-gray-500 dark:text-gray-400"
-				datetime={sighting.createdAt.toISOString()}
-			>
-				{sighting.createdAt.toLocaleDateString("en-US", {
-					year: "numeric",
-					month: "short",
-					day: "numeric",
-					hour: "2-digit",
-					minute: "2-digit",
-				})}
-			</time>
 		</div>
 
-		<SlothStatusBadge status={sighting.slothStatus} />
-		<SightingActionDropdown sightingId={sighting.id} {isOwned} {reportContentForm} {isLoggedIn} />
-	</Card.Header>
-	<Card.Content class="space-y-3">
+		<div class="flex items-center gap-2">
+			<SlothStatusBadge status={sighting.slothStatus} />
+			<ReportContentActionButton
+				contentType={ContentType.Sighting}
+				contentId={sighting.id}
+				{reportContentForm}
+				{isLoggedIn}
+			/>
+			{#if isOwned}
+				<DeleteSightingActionButton sightingId={sighting.id} />
+			{/if}
+		</div>
+	</div>
+	<div class="space-y-3 pt-3">
 		{#if sighting.photos.length > 0}
-			<div>
+			<div class="grid grid-cols-2 gap-2 md:grid-cols-3">
 				{#each sighting.photos as photo (photo.cloudflareImageId)}
-					<div>
+					<figure class="relative aspect-[4/3] overflow-hidden rounded-lg">
 						<img
 							src={getImageUrl(photo.cloudflareImageId)}
+							class="h-full w-full object-cover"
 							style={photo.lqip ? `--lqip: ${photo.lqip}` : undefined}
-							alt={photo.caption || "Sloth sighting photo"}
+							loading="lazy"
+							decoding="async"
+							alt={photo.caption ||
+								`Sloth sighting on ${sighting.createdAt.toLocaleString("en-US", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}`}
 						/>
 						{#if photo.caption}
-							<div
+							<figcaption
 								class="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black/60 to-transparent p-2"
 							>
 								<p class="text-xs font-medium text-white">{photo.caption}</p>
-							</div>
+							</figcaption>
 						{/if}
-					</div>
+					</figure>
 				{/each}
 			</div>
 		{/if}
@@ -92,5 +106,5 @@
 		{:else}
 			<p class="text-sm text-gray-500 italic">No notes provided.</p>
 		{/if}
-	</Card.Content>
-</Card.Root>
+	</div>
+</div>
