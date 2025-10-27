@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { getImageUrl } from "$lib/client/cloudflare/images";
 	import { SlothStatus } from "$lib/client/db/schema";
+	import SlothStatusBadge from "$lib/components/SlothStatusBadge.svelte";
 	import {
 		AddSightingActionButton,
 		DirectionsActionButton,
 		ShareActionButton,
 		SlothActionButton,
 	} from "$lib/components/action-button";
-	import SlothStatusBadge from "$lib/components/SlothStatusBadge.svelte";
 	import { LoginDialog } from "$lib/components/dialogs/login";
 	import {
 		SubmitSightingDialog,
@@ -96,10 +96,7 @@
 				</SlothActionButton>
 
 				{#snippet trigger({ props }: { props: Record<string, unknown> })}
-					<AddSightingActionButton
-						{...props}
-						onclick={() => (submitSightingDialogOpen = true)}
-					/>
+					<AddSightingActionButton {...props} onclick={() => (submitSightingDialogOpen = true)} />
 				{/snippet}
 
 				{#if isLoggedIn}

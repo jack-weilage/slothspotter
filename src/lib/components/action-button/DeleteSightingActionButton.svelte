@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { enhance } from "$app/forms";
-	import SlothActionButton from "./SlothActionButton.svelte";
 	import { Button } from "$lib/components/ui/button";
 	import * as Dialog from "$lib/components/ui/dialog";
+	import SlothActionButton from "./SlothActionButton.svelte";
 	import TrashIcon from "@lucide/svelte/icons/trash-2";
 
 	let { sightingId, class: className }: { sightingId: string; class?: string } = $props();

@@ -2,7 +2,11 @@
 	import SlothActionButton from "./SlothActionButton.svelte";
 	import NavigationIcon from "@lucide/svelte/icons/navigation";
 
-	let { latitude, longitude, class: className }: { latitude: number; longitude: number; class?: string } = $props();
+	let {
+		latitude,
+		longitude,
+		class: className,
+	}: { latitude: number; longitude: number; class?: string } = $props();
 </script>
 
 <SlothActionButton
