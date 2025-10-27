@@ -1,13 +1,12 @@
 <script lang="ts">
 	import { getImageUrl } from "$lib/client/cloudflare/images";
 	import { ContentType, type SlothStatus } from "$lib/client/db/schema";
+	import UserAvatar from "$lib/components/UserAvatar.svelte";
 	import {
 		DeleteSightingActionButton,
 		ReportContentActionButton,
 	} from "$lib/components/action-button";
-	import UserAvatar from "$lib/components/UserAvatar.svelte";
 	import type { ReportContentSchema } from "$lib/components/dialogs/report-content";
-	import * as Card from "$lib/components/ui/card";
 	import SlothStatusBadge from "./SlothStatusBadge.svelte";
 	import "lquip/css";
 	import type { Infer, SuperValidated } from "sveltekit-superforms";
@@ -41,32 +40,30 @@
 	} = $props();
 </script>
 
-<Card.Root>
-	<Card.Header class="flex items-center gap-3 pb-3">
-		<UserAvatar user={sighting.sightedBy} class="size-10" />
-		<div class="min-w-0 flex-1">
-			<div class="flex items-center justify-between gap-2">
+<div>
+	<div class="flex flex-wrap justify-between gap-3 pb-3">
+		<div class="flex flex-row items-center gap-x-3">
+			<UserAvatar user={sighting.sightedBy} class="size-10" />
+
+			<div>
 				<h3 class="truncate font-semibold text-gray-900 dark:text-gray-100">
 					{sighting.sightedBy.displayName}
 				</h3>
+				<time
+					class="text-sm text-gray-500 dark:text-gray-400"
+					datetime={sighting.createdAt.toISOString()}
+				>
+					{sighting.createdAt.toLocaleDateString("en-US", {
+						year: "numeric",
+						month: "short",
+						day: "numeric",
+					})}
+				</time>
 			</div>
-
-			<time
-				class="text-sm text-gray-500 dark:text-gray-400"
-				datetime={sighting.createdAt.toISOString()}
-			>
-				{sighting.createdAt.toLocaleDateString("en-US", {
-					year: "numeric",
-					month: "short",
-					day: "numeric",
-					hour: "2-digit",
-					minute: "2-digit",
-				})}
-			</time>
 		</div>
 
-		<SlothStatusBadge status={sighting.slothStatus} />
 		<div class="flex items-center gap-2">
+			<SlothStatusBadge status={sighting.slothStatus} />
 			<ReportContentActionButton
 				contentType={ContentType.Sighting}
 				contentId={sighting.id}
@@ -77,8 +74,8 @@
 				<DeleteSightingActionButton sightingId={sighting.id} />
 			{/if}
 		</div>
-	</Card.Header>
-	<Card.Content class="space-y-3">
+	</div>
+	<div class="space-y-3 pt-3">
 		{#if sighting.photos.length > 0}
 			<div class="grid grid-cols-2 gap-2 md:grid-cols-3">
 				{#each sighting.photos as photo (photo.cloudflareImageId)}
@@ -109,5 +106,5 @@
 		{:else}
 			<p class="text-sm text-gray-500 italic">No notes provided.</p>
 		{/if}
-	</Card.Content>
-</Card.Root>
+	</div>
+</div>
