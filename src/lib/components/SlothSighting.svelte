@@ -67,22 +67,26 @@
 	</Card.Header>
 	<Card.Content class="space-y-3">
 		{#if sighting.photos.length > 0}
-			<div>
+			<div class="grid grid-cols-2 gap-2 md:grid-cols-3">
 				{#each sighting.photos as photo (photo.cloudflareImageId)}
-					<div>
+					<figure class="relative aspect-[4/3] overflow-hidden rounded-lg">
 						<img
 							src={getImageUrl(photo.cloudflareImageId)}
+							class="h-full w-full object-cover"
 							style={photo.lqip ? `--lqip: ${photo.lqip}` : undefined}
-							alt={photo.caption || "Sloth sighting photo"}
+							loading="lazy"
+							decoding="async"
+							alt={photo.caption ||
+								`Sloth sighting on ${sighting.createdAt.toLocaleString("en-US", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}`}
 						/>
 						{#if photo.caption}
-							<div
+							<figcaption
 								class="absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black/60 to-transparent p-2"
 							>
 								<p class="text-xs font-medium text-white">{photo.caption}</p>
-							</div>
+							</figcaption>
 						{/if}
-					</div>
+					</figure>
 				{/each}
 			</div>
 		{/if}
