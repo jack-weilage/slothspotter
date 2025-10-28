@@ -42,6 +42,11 @@ export const GET: RequestHandler = async function (event) {
 		// Invalid code or client credentials
 		error(400);
 	}
+
+	// Clear OAuth cookies after successful validation
+	event.cookies.delete("google_oauth_state", { path: "/" });
+	event.cookies.delete("google_code_verifier", { path: "/" });
+
 	const claims = decodeIdToken(tokens.idToken()) as GoogleIdTokenClaims;
 
 	const googleUserId = claims.sub;
