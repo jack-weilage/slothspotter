@@ -95,6 +95,11 @@ export async function validateSessionToken(kv: KVNamespace, db: Database, token:
 
 	const user = await getUserById(db, session.userId);
 
+	if (user?.bannedUntil && user.bannedUntil > new Date()) {
+		await invalidateSession(kv, sessionId);
+		return { session: null, user: null };
+	}
+
 	return { session, user };
 }
 
