@@ -8,7 +8,6 @@ import * as schema from "$lib/server/db/schema";
 import { uploadPhotosForSighting } from "$lib/server/photos/upload";
 import type { PageServerLoad, Actions } from "./$types";
 import { fail } from "@sveltejs/kit";
-import { randomUUID } from "crypto";
 import { asc, eq, sql } from "drizzle-orm";
 import { setError, superValidate } from "sveltekit-superforms";
 import { arktype } from "sveltekit-superforms/adapters";
@@ -84,8 +83,8 @@ export const actions: Actions = {
 
 		const db = connect(platform!.env.DB);
 
-		const slothId = randomUUID();
-		const sightingId = randomUUID();
+		const slothId = crypto.randomUUID();
+		const sightingId = crypto.randomUUID();
 
 		await db.batch([
 			db.insert(schema.sloth).values({

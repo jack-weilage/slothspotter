@@ -8,7 +8,6 @@ import { uploadPhotosForSighting } from "$lib/server/photos/upload";
 import type { Actions, PageServerLoad } from "./$types";
 import { error, fail, redirect } from "@sveltejs/kit";
 import { type } from "arktype";
-import { randomUUID } from "crypto";
 import { and, desc, eq } from "drizzle-orm";
 import { setError, superValidate } from "sveltekit-superforms";
 import { arktype } from "sveltekit-superforms/adapters";
@@ -100,7 +99,7 @@ export const actions: Actions = {
 			return fail(404, { error: "Sloth not found" });
 		}
 
-		const sightingId = randomUUID();
+		const sightingId = crypto.randomUUID();
 		await db.insert(schema.sighting).values({
 			id: sightingId,
 			slothId: params.id,
@@ -178,7 +177,7 @@ export const actions: Actions = {
 
 		const { "cf-turnstile-response": turnstileToken, reason, comment } = parsedData;
 
-		const turnstileResponse = validateTurnstile(turnstileToken, getClientAddress());
+		const turnstileResponse = await validateTurnstile(turnstileToken, getClientAddress());
 		if (!turnstileResponse) {
 			return fail(400, {
 				error: "Turnstile validation failed",
