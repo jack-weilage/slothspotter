@@ -106,7 +106,7 @@
 			onclick={() => (submitSlothDialogOpen = true)}
 			size="icon"
 			class="absolute right-6 bottom-6 h-14 w-14 rounded-full text-white shadow-lg transition-all hover:scale-105 focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 md:h-12 md:w-12"
-			aria-label="Report a new sloth"
+			aria-label="Add a new sighting"
 			{...props}
 		>
 			<PlusIcon class="h-6 w-6 md:h-5 md:w-5" />
