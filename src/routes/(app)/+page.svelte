@@ -71,8 +71,8 @@
 		style="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
 		attributionControl={false}
 		center={BELLINGHAM_COORDINATES}
-		zoom={13}
-		minZoom={11}
+		zoom={12}
+		minZoom={10}
 	>
 		<Map.Control position="top-right">
 			<AboutDialog />
