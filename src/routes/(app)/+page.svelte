@@ -83,6 +83,7 @@
 			position="top-right"
 			control={new maplibre.GeolocateControl({ trackUserLocation: true })}
 		/>
+		<Map.Control position="bottom-left" control={new maplibre.AttributionControl()} />
 
 		{#each data.sloths as sloth (sloth.id)}
 			<Map.Marker
