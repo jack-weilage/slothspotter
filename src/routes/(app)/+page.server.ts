@@ -12,7 +12,7 @@ import { asc, eq, sql } from "drizzle-orm";
 import { setError, superValidate } from "sveltekit-superforms";
 import { arktype } from "sveltekit-superforms/adapters";
 
-export const load: PageServerLoad = async ({ depends, locals, platform }) => {
+export const load: PageServerLoad = async ({ depends, locals, platform, cookies }) => {
 	depends("data:sloths");
 	const db = connect(platform!.env.DB);
 
@@ -53,9 +53,13 @@ export const load: PageServerLoad = async ({ depends, locals, platform }) => {
 		orderBy: asc(schema.sloth.createdAt),
 	});
 
+	// Check if tutorial has been completed
+	const tutorialComplete = cookies.get("tutorial-complete") === "true";
+
 	return {
 		sloths,
 		user: locals.user,
+		tutorialComplete,
 		submitSlothForm: await superValidate(arktype(SubmitSlothSchema)),
 		submitSightingForm: await superValidate(arktype(SubmitSightingSchema)),
 	};

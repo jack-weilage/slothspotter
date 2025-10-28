@@ -7,6 +7,7 @@
 	import { AboutDialog } from "$lib/components/dialogs/about";
 	import { LoginDialog } from "$lib/components/dialogs/login";
 	import { SubmitSlothDialog } from "$lib/components/dialogs/submit-sloth";
+	import { TutorialDialog } from "$lib/components/dialogs/tutorial";
 	import * as Map from "$lib/components/map";
 	import { Button } from "$lib/components/ui/button";
 	import * as Drawer from "$lib/components/ui/drawer";
@@ -126,4 +127,6 @@
 	{:else}
 		<LoginDialog bind:open={submitSlothDialogOpen} {trigger} />
 	{/if}
+
+	<TutorialDialog open={!data.tutorialComplete} />
 </div>
