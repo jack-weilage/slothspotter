@@ -2,10 +2,10 @@ import { ContentType, SlothStatus } from "$lib/client/db/schema";
 import { ReportContentSchema } from "$lib/components/dialogs/report-content";
 import { SubmitSightingSchema } from "$lib/components/dialogs/submit-sighting";
 import { SubmitSlothSchema } from "$lib/components/dialogs/submit-sloth";
-import { deleteImage, uploadImage } from "$lib/server/cloudflare/images";
 import { validateTurnstile } from "$lib/server/cloudflare/turnstile";
 import { connect } from "$lib/server/db";
 import * as schema from "$lib/server/db/schema";
+import { uploadPhotosForSighting } from "$lib/server/photos/upload";
 import type { PageServerLoad, Actions } from "./$types";
 import { fail } from "@sveltejs/kit";
 import { randomUUID } from "crypto";
@@ -103,31 +103,9 @@ export const actions: Actions = {
 			}),
 		]);
 
-		// Upload photos to Cloudflare Images and create photo records
-		const uploadedPhotos: string[] = [];
-
 		try {
-			for (const photo of form.data.photos) {
-				const photoId = randomUUID();
-
-				// Upload to Cloudflare Images
-				const cloudflareImageId = await uploadImage(photo, photoId, locals.user.id);
-				uploadedPhotos.push(cloudflareImageId);
-
-				await db.insert(schema.photo).values({
-					id: photoId,
-					sightingId: sightingId,
-					cloudflareImageId,
-				});
-			}
+			await uploadPhotosForSighting(db, form.data.photos, sightingId, locals.user.id);
 		} catch (uploadError) {
-			// Clean up any successfully uploaded images
-			for (const photoId of uploadedPhotos) {
-				await deleteImage(photoId);
-				await db.delete(schema.photo).where(eq(schema.photo.cloudflareImageId, photoId));
-			}
-
-			// Clean up database records (sloth and sighting)
 			await db.batch([
 				db.delete(schema.sighting).where(eq(schema.sighting.id, sightingId)),
 				db.delete(schema.sloth).where(eq(schema.sloth.id, slothId)),
