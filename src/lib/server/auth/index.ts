@@ -1,3 +1,4 @@
+import { dev } from "$app/environment";
 import type { Database } from "$lib/server/db";
 import { getUserById } from "../db/queries/user";
 import { sha256 } from "@oslojs/crypto/sha2";
@@ -111,13 +112,20 @@ export async function invalidateSession(kv: KVNamespace, sessionId: string) {
 
 export function setSessionTokenCookie(event: RequestEvent, token: string, session: StoredSession) {
 	event.cookies.set(sessionCookieName, token, {
-		expires: new Date(+session.createdAt + EXPIRATION_TTL_SECONDS * 1000),
 		path: "/",
+		httpOnly: true,
+		sameSite: "lax",
+		expires: new Date(+session.createdAt + EXPIRATION_TTL_SECONDS * 1000),
+		secure: !dev || event.url.protocol === "https",
 	});
 }
 
 export function deleteSessionTokenCookie(event: RequestEvent) {
 	event.cookies.delete(sessionCookieName, {
 		path: "/",
+		httpOnly: true,
+		sameSite: "lax",
+		secure: !dev || event.url.protocol === "https",
+		maxAge: 0,
 	});
 }
