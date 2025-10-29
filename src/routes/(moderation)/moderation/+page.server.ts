@@ -5,6 +5,7 @@ import {
 	ReportReason,
 	UserRole,
 } from "$lib/client/db/schema";
+import { deleteImage } from "$lib/server/cloudflare/images";
 import { connect } from "$lib/server/db";
 import * as schema from "$lib/server/db/schema";
 import type { Actions, PageServerLoad } from "./$types";
@@ -54,6 +55,28 @@ export interface ParsedReport {
 		displayName: string;
 	};
 	content: ParsedContent | null;
+}
+
+async function deletePhoto(photo: { cloudflareImageId: string }): Promise<void> {
+	try {
+		await deleteImage(photo.cloudflareImageId);
+	} catch (error) {
+		console.error("Failed to delete Cloudflare image:", error);
+	}
+}
+
+async function deleteSightingPhotos(photos: { cloudflareImageId: string }[]): Promise<void> {
+	for (const photo of photos) {
+		await deletePhoto(photo);
+	}
+}
+
+async function deleteSlothPhotos(
+	sightings: { photos: { cloudflareImageId: string }[] }[],
+): Promise<void> {
+	for (const sighting of sightings) {
+		await deleteSightingPhotos(sighting.photos);
+	}
 }
 
 export const load: PageServerLoad = async ({ locals, platform }) => {
@@ -196,9 +219,38 @@ export const actions: Actions = {
 			[ContentType.Photo]: schema.photo,
 		}[report.contentType];
 
+		// Delete associated Cloudflare images before deleting content
+		if (report.contentType === ContentType.Photo) {
+			const photo = await db.query.photo.findFirst({
+				where: eq(schema.photo.id, report.contentId),
+				columns: { cloudflareImageId: true },
+			});
+
+			if (photo) {
+				await deletePhoto(photo);
+			}
+		} else if (report.contentType === ContentType.Sighting) {
+			const photos = await db.query.photo.findMany({
+				where: eq(schema.photo.sightingId, report.contentId),
+				columns: { cloudflareImageId: true },
+			});
+
+			await deleteSightingPhotos(photos);
+		} else if (report.contentType === ContentType.Sloth) {
+			const sightings = await db.query.sighting.findMany({
+				where: eq(schema.sighting.slothId, report.contentId),
+				with: {
+					photos: {
+						columns: { cloudflareImageId: true },
+					},
+				},
+			});
+
+			await deleteSlothPhotos(sightings);
+		}
+
 		await db.batch([
 			db.delete(table).where(eq(table.id, report.contentId)),
-			// TODO: This will leave hanging images in Cloudflare. We need a task to clean them up.
 			db.insert(schema.moderationAction).values({
 				reportId: data.reportId,
 				actionedBy: locals.user!.id,

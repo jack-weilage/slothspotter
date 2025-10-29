@@ -9,7 +9,7 @@
 	{onclick}
 	aria-label="Add sighting"
 	title="Add sighting"
-	label="Report"
+	label="Add Sighting"
 	class={className}
 >
 	{#snippet icon()}

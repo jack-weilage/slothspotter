@@ -68,7 +68,7 @@
 	<Dialog.Trigger child={trigger} />
 	<Dialog.Content class="max-h-[100dvh] w-full max-w-2xl overflow-y-auto">
 		<Dialog.Header>
-			<Dialog.Title>Report a Sloth - Step {currentStep} of {totalSteps}</Dialog.Title>
+			<Dialog.Title>Add Sighting - Step {currentStep} of {totalSteps}</Dialog.Title>
 			<div class="mt-2">
 				<Progress value={(currentStep / totalSteps) * 100} class="w-full" />
 			</div>
@@ -209,7 +209,7 @@
 			<!-- Step 3: Confirmation -->
 			<div class="space-y-6 {currentStep !== 3 && 'hidden'}">
 				<div class="text-center">
-					<h3 class="mb-2 text-lg font-semibold">Confirm Your Report</h3>
+					<h3 class="mb-2 text-lg font-semibold">Confirm Your Sighting</h3>
 					<p class="text-sm text-gray-600">Review your sloth sighting before submitting</p>
 				</div>
 
@@ -294,7 +294,7 @@
 							<LoaderIcon class="mr-2 h-4 w-4 animate-spin" />
 							Submitting...
 						{:else}
-							Submit Report
+							Submit Sighting
 						{/if}
 					</Form.Button>
 				{/if}

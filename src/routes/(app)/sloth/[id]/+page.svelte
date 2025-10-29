@@ -188,7 +188,7 @@
 							<h3 class="mb-2 text-lg font-medium text-gray-900 dark:text-gray-100">
 								No sightings yet
 							</h3>
-							<p class="mb-4 text-gray-500">Be the first to report a sighting of this sloth!</p>
+							<p class="mb-4 text-gray-500">Be the first to add a sighting of this sloth!</p>
 							<Button variant="default" size="sm" onclick={() => (submitSightingDialogOpen = true)}>
 								<PlusIcon class="mr-2 h-4 w-4" /> Add First Sighting
 							</Button>

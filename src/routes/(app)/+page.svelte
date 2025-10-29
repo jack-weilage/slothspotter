@@ -7,6 +7,7 @@
 	import { AboutDialog } from "$lib/components/dialogs/about";
 	import { LoginDialog } from "$lib/components/dialogs/login";
 	import { SubmitSlothDialog } from "$lib/components/dialogs/submit-sloth";
+	import { TutorialDialog } from "$lib/components/dialogs/tutorial";
 	import * as Map from "$lib/components/map";
 	import { Button } from "$lib/components/ui/button";
 	import * as Drawer from "$lib/components/ui/drawer";
@@ -71,8 +72,8 @@
 		style="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
 		attributionControl={false}
 		center={BELLINGHAM_COORDINATES}
-		zoom={13}
-		minZoom={11}
+		zoom={12}
+		minZoom={10}
 	>
 		<Map.Control position="top-right">
 			<AboutDialog />
@@ -83,6 +84,7 @@
 			position="top-right"
 			control={new maplibre.GeolocateControl({ trackUserLocation: true })}
 		/>
+		<Map.Control position="bottom-left" control={new maplibre.AttributionControl()} />
 
 		{#each data.sloths as sloth (sloth.id)}
 			<Map.Marker
@@ -105,7 +107,7 @@
 			onclick={() => (submitSlothDialogOpen = true)}
 			size="icon"
 			class="absolute right-6 bottom-6 h-14 w-14 rounded-full text-white shadow-lg transition-all hover:scale-105 focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 md:h-12 md:w-12"
-			aria-label="Report a new sloth"
+			aria-label="Add a new sighting"
 			{...props}
 		>
 			<PlusIcon class="h-6 w-6 md:h-5 md:w-5" />
@@ -125,4 +127,6 @@
 	{:else}
 		<LoginDialog bind:open={submitSlothDialogOpen} {trigger} />
 	{/if}
+
+	<TutorialDialog open={!data.tutorialComplete} />
 </div>

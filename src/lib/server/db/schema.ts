@@ -6,7 +6,6 @@ import {
 	ModerationReportStatus,
 	ModerationActionType,
 } from "../../client/db/schema";
-import { randomUUID } from "crypto";
 import { relations } from "drizzle-orm";
 import { sqliteTable, integer, text, real, uniqueIndex, index } from "drizzle-orm/sqlite-core";
 
@@ -33,7 +32,7 @@ export const user = sqliteTable(
 	{
 		id: text("id")
 			.primaryKey()
-			.$defaultFn(() => randomUUID()),
+			.$defaultFn(() => crypto.randomUUID()),
 		displayName: text("display_name").notNull(),
 		avatarUrl: text("avatar_url"),
 		role: text("role").notNull().$type<UserRole>().default(UserRole.User),
@@ -65,7 +64,7 @@ export type User = typeof user.$inferSelect;
 export const sloth = sqliteTable("sloth", {
 	id: text("id")
 		.primaryKey()
-		.$defaultFn(() => randomUUID()),
+		.$defaultFn(() => crypto.randomUUID()),
 	latitude: real("latitude").notNull(),
 	longitude: real("longitude").notNull(),
 	status: text("status").notNull().$type<SlothStatus>().default(SlothStatus.Active),
@@ -89,7 +88,7 @@ export const sighting = sqliteTable(
 	{
 		id: text("id")
 			.primaryKey()
-			.$defaultFn(() => randomUUID()),
+			.$defaultFn(() => crypto.randomUUID()),
 		slothId: text("sloth_id")
 			.notNull()
 			.references(() => sloth.id, { onDelete: "cascade" }),
@@ -133,7 +132,7 @@ export const photo = sqliteTable(
 	{
 		id: text("id")
 			.primaryKey()
-			.$defaultFn(() => randomUUID()),
+			.$defaultFn(() => crypto.randomUUID()),
 		sightingId: text("sighting_id")
 			.notNull()
 			.references(() => sighting.id, { onDelete: "cascade" }),
@@ -164,7 +163,7 @@ export const moderationReport = sqliteTable(
 	{
 		id: text("id")
 			.primaryKey()
-			.$defaultFn(() => randomUUID()),
+			.$defaultFn(() => crypto.randomUUID()),
 		contentId: text("content_id").notNull(),
 		contentType: text("content_type").notNull().$type<ContentType>(),
 		reportedBy: text("reported_by")
@@ -199,7 +198,7 @@ export type ModerationReport = typeof moderationReport.$inferSelect;
 export const moderationAction = sqliteTable("moderation_action", {
 	id: text("id")
 		.primaryKey()
-		.$defaultFn(() => randomUUID()),
+		.$defaultFn(() => crypto.randomUUID()),
 	reportId: text("report_id")
 		.notNull()
 		.references(() => moderationReport.id, { onDelete: "cascade" }),

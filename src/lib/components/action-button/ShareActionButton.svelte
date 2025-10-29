@@ -1,10 +1,12 @@
 <script lang="ts">
 	import SlothActionButton from "./SlothActionButton.svelte";
 	import ShareIcon from "@lucide/svelte/icons/share-2";
+	import { onDestroy } from "svelte";
 
 	let { slothId, class: className }: { slothId: string; class?: string } = $props();
 
 	let justCopied = $state(false);
+	let resetTimeout: ReturnType<typeof setTimeout> | null = null;
 
 	async function handleShare() {
 		const url = `${window.location.origin}/sloth/${slothId}`;
@@ -19,8 +21,21 @@
 
 		await navigator.clipboard.writeText(url);
 		justCopied = true;
-		setTimeout(() => (justCopied = false), 1500);
+
+		if (resetTimeout) {
+			clearTimeout(resetTimeout);
+		}
+		resetTimeout = setTimeout(() => {
+			justCopied = false;
+			resetTimeout = null;
+		}, 2000);
 	}
+
+	onDestroy(() => {
+		if (resetTimeout) {
+			clearTimeout(resetTimeout);
+		}
+	});
 </script>
 
 <SlothActionButton
