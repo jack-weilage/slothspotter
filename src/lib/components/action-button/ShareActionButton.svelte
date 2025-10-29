@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { onDestroy } from "svelte";
 	import SlothActionButton from "./SlothActionButton.svelte";
 	import ShareIcon from "@lucide/svelte/icons/share-2";
+	import { onDestroy } from "svelte";
 
 	let { slothId, class: className }: { slothId: string; class?: string } = $props();
 

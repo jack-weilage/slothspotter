@@ -12,14 +12,14 @@
 
 <a
 	href="#main-content"
-	class="absolute left-0 top-0 -translate-y-full bg-gray-900 px-4 py-2 text-white focus:translate-y-0"
+	class="absolute top-0 left-0 -translate-y-full bg-gray-900 px-4 py-2 text-white focus:translate-y-0"
 >
 	Skip to main content
 </a>
 
 <header class="flex h-[4rem] items-center justify-between bg-white p-4 shadow-sm">
 	<h1 class="text-xl font-bold text-gray-900">
-		<a href="/" class="hover:text-gray-700 transition-colors">SlothSpotter</a>
+		<a href="/" class="transition-colors hover:text-gray-700">SlothSpotter</a>
 	</h1>
 
 	{#if data.user}
